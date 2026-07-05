@@ -1,0 +1,345 @@
+<title>Step 13 · 화면 스케치 (와이어프레임)</title>
+<style>
+  :root {
+    --paper: #f4f5f8;
+    --panel: #ffffff;
+    --ink: #23304d;
+    --ink-soft: #5a6580;
+    --line: #c3cbdc;
+    --line-strong: #9aa5c0;
+    --accent: #e0655a;      /* 인터랙션/CTA 표시 */
+    --accent-soft: #f6ddd9;
+    --blueprint: #3a58c9;   /* 라우트/주석 */
+    --note-bg: #eef1f9;
+    --shadow: 0 1px 2px rgba(35,48,77,.06), 0 8px 24px rgba(35,48,77,.06);
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", "Apple SD Gothic Neo", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12151d;
+      --panel: #1a1f2b;
+      --ink: #e7ebf4;
+      --ink-soft: #97a2bd;
+      --line: #333c52;
+      --line-strong: #4b5670;
+      --accent: #f0796e;
+      --accent-soft: #3a2320;
+      --blueprint: #7f97ff;
+      --note-bg: #1e2536;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #f4f5f8; --panel: #ffffff; --ink: #23304d; --ink-soft: #5a6580;
+    --line: #c3cbdc; --line-strong: #9aa5c0; --accent: #e0655a; --accent-soft: #f6ddd9;
+    --blueprint: #3a58c9; --note-bg: #eef1f9; --shadow: 0 1px 2px rgba(35,48,77,.06), 0 8px 24px rgba(35,48,77,.06);
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151d; --panel: #1a1f2b; --ink: #e7ebf4; --ink-soft: #97a2bd;
+    --line: #333c52; --line-strong: #4b5670; --accent: #f0796e; --accent-soft: #3a2320;
+    --blueprint: #7f97ff; --note-bg: #1e2536; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap {
+    font-family: var(--sans);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 26px,
+      var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px clamp(16px, 4vw, 56px) 72px;
+    line-height: 1.5;
+  }
+
+  header.masthead { max-width: 1180px; margin: 0 auto 34px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--blueprint); margin: 0 0 8px;
+  }
+  h1 { font-size: clamp(24px, 4vw, 36px); margin: 0 0 10px; letter-spacing: -.01em; text-wrap: balance; }
+  .lede { color: var(--ink-soft); max-width: 60ch; margin: 0; font-size: 15px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px;
+    font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { width: 22px; height: 12px; border-radius: 3px; }
+  .swatch.act { background: var(--accent); }
+  .swatch.route { background: var(--blueprint); }
+  .swatch.ph { background: repeating-linear-gradient(45deg, var(--line), var(--line) 4px, transparent 4px, transparent 8px); border: 1px solid var(--line-strong); }
+
+  .grid {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; gap: 24px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  /* phone frame */
+  .screen {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .screen-head {
+    padding: 14px 16px; border-bottom: 1px dashed var(--line-strong);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  }
+  .screen-head .n {
+    font-family: var(--mono); font-size: 12px; color: var(--panel);
+    background: var(--ink); border-radius: 6px; padding: 2px 7px; flex: none;
+  }
+  .screen-head .t { font-weight: 650; font-size: 15px; }
+  .screen-head .r { font-family: var(--mono); font-size: 11.5px; color: var(--blueprint); }
+  .screen-body {
+    padding: 14px; display: flex; flex-direction: column; gap: 10px;
+    flex: 1; min-height: 340px;
+  }
+
+  /* wireframe blocks */
+  .blk { border: 1.5px solid var(--line-strong); border-radius: 8px; padding: 9px 10px; }
+  .blk.dash { border-style: dashed; }
+  .blk .lab { font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+  .blk .txt { font-size: 12.5px; color: var(--ink); margin-top: 3px; }
+
+  .ph {
+    background: repeating-linear-gradient(45deg, var(--note-bg), var(--note-bg) 6px, transparent 6px, transparent 12px);
+    border: 1.5px dashed var(--line-strong); border-radius: 8px;
+    display: grid; place-items: center; text-align: center;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+    padding: 12px;
+  }
+  .ph.tall { min-height: 92px; }
+
+  .cta {
+    background: var(--accent); color: #fff; border: none; border-radius: 8px;
+    padding: 11px; text-align: center; font-weight: 650; font-size: 13.5px;
+  }
+  .btn-line {
+    border: 1.5px solid var(--accent); color: var(--accent); background: var(--accent-soft);
+    border-radius: 8px; padding: 9px; text-align: center; font-weight: 600; font-size: 12.5px;
+  }
+  .toolbar { display: flex; gap: 6px; }
+  .toolbar .tool {
+    flex: 1; border: 1.5px solid var(--accent); color: var(--accent); background: var(--accent-soft);
+    border-radius: 7px; padding: 8px 4px; text-align: center; font-size: 11px; font-weight: 600;
+  }
+  .row { display: grid; gap: 8px; }
+  .row.c2 { grid-template-columns: 1fr 1fr; }
+  .row.c3 { grid-template-columns: repeat(3, 1fr); }
+  .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .thumb {
+    aspect-ratio: 1; border: 1.5px dashed var(--line-strong); border-radius: 8px;
+    background: repeating-linear-gradient(45deg, var(--note-bg), var(--note-bg) 6px, transparent 6px, transparent 12px);
+    display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: var(--ink-soft);
+    position: relative;
+  }
+  .thumb .del { position: absolute; top: 4px; right: 5px; color: var(--accent); font-weight: 700; }
+  .avatar {
+    width: 68px; height: 68px; border-radius: 50%; margin: 4px auto;
+    border: 1.5px dashed var(--line-strong);
+    background: repeating-linear-gradient(45deg, var(--note-bg), var(--note-bg) 6px, transparent 6px, transparent 12px);
+    display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: var(--ink-soft);
+  }
+  .progress { height: 10px; border-radius: 999px; background: var(--note-bg); border: 1px solid var(--line-strong); overflow: hidden; }
+  .progress > i { display: block; height: 100%; width: 62%; background: var(--accent); }
+  .prog-lab { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); display: flex; justify-content: space-between; }
+  .note {
+    background: var(--note-bg); border-left: 3px solid var(--blueprint);
+    border-radius: 0 6px 6px 0; padding: 8px 10px; font-size: 11.5px; color: var(--ink-soft);
+  }
+  .note b { color: var(--ink); font-weight: 600; }
+  .spacer { flex: 1; }
+
+  /* flow + decisions */
+  .section { max-width: 1180px; margin: 40px auto 0; }
+  .section h2 { font-size: 20px; margin: 0 0 6px; letter-spacing: -.01em; }
+  .section .sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 18px; }
+  .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .flow .step {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 13px; font-size: 13px; box-shadow: var(--shadow);
+  }
+  .flow .step b { font-family: var(--mono); font-size: 11px; color: var(--blueprint); display: block; }
+  .flow .arrow { color: var(--line-strong); font-weight: 700; }
+  .flow .gate { border-color: var(--accent); }
+  .flow .gate b { color: var(--accent); }
+
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 10px; font-size: 14px; }
+  .card ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 13px; }
+  .card li { margin-bottom: 6px; }
+  .card li b { color: var(--ink); font-weight: 600; }
+
+  footer { max-width: 1180px; margin: 40px auto 0; color: var(--ink-soft); font-family: var(--mono); font-size: 11.5px; }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Step 13 · Sketch &amp; Decision</p>
+    <h1>추구미 무드보드 — 화면 스케치</h1>
+    <p class="lede">Step 11(페이지·기능)과 Step 12(고객 여정)를 바탕으로 한 6개 페이지 저해상도 와이어프레임. 레이아웃·흐름·핵심 요소 배치 확인용입니다.</p>
+    <div class="legend">
+      <span><i class="swatch act"></i> 인터랙션 · CTA</span>
+      <span><i class="swatch route"></i> 라우트 · 주석</span>
+      <span><i class="swatch ph"></i> 이미지 · 콘텐츠 placeholder</span>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <!-- 2. 메인 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">2</span><span class="t">메인 (랜딩·홈)</span><span class="r">/</span></div>
+      <div class="screen-body">
+        <div class="blk dash"><div class="lab">Onboarding</div><div class="txt">추구미 · 무드보드 개념 소개</div></div>
+        <div class="ph tall">완성 무드보드 예시 갤러리<br>(골라 시작 → 엔드 이미지 상상)</div>
+        <div class="row c3">
+          <div class="thumb">예시</div><div class="thumb">예시</div><div class="thumb">예시</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="cta">무드보드 만들기 →</div>
+      </div>
+    </section>
+
+    <!-- 3. 테스트 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">3</span><span class="t">테스트</span><span class="r">/test</span></div>
+      <div class="screen-body">
+        <div class="prog-lab"><span>추구미 테스트</span><span>3 / 9</span></div>
+        <div class="progress"><i style="width:33%"></i></div>
+        <div class="blk"><div class="lab">Question</div><div class="txt">이런 분위기 중 끌리는 건?</div></div>
+        <div class="thumbs">
+          <div class="thumb">이미지 선택</div><div class="thumb">이미지 선택</div>
+          <div class="thumb">이미지 선택</div><div class="thumb">이미지 선택</div>
+        </div>
+        <div class="note">이미지에서 시작 → 텍스트로 구체화<br><b>큰 갈래 → 구체화</b> 연쇄 질문</div>
+        <div class="spacer"></div>
+        <div class="cta">다음 →</div>
+      </div>
+    </section>
+
+    <!-- 4. 무드보드 생성중 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">4</span><span class="t">무드보드 생성중</span><span class="r">/generating</span></div>
+      <div class="screen-body">
+        <div class="prog-lab"><span>AI 이미지 생성중…</span><span>62%</span></div>
+        <div class="progress"><i></i></div>
+        <div class="lab" style="font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)">실시간으로 채워지는 미리보기</div>
+        <div class="row c3">
+          <div class="thumb">✓</div><div class="thumb">✓</div><div class="thumb">…</div>
+          <div class="thumb">✓</div><div class="thumb">…</div><div class="thumb">·</div>
+        </div>
+        <div class="note"><b>이미지 생성 프롬프트</b> 자동 변환 → AI 생성</div>
+        <div class="spacer"></div>
+        <div class="blk dash"><div class="lab">Interaction</div><div class="txt">아날로그 인터랙션(조립 연출)</div></div>
+      </div>
+    </section>
+
+    <!-- 5. 무드보드 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">5</span><span class="t">무드보드</span><span class="r">/board/:id</span></div>
+      <div class="screen-body">
+        <div class="lab" style="font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)">완성 프리뷰</div>
+        <div class="row c3">
+          <div class="thumb">img</div><div class="thumb">img</div><div class="thumb">img</div>
+          <div class="thumb">img</div><div class="thumb">img</div><div class="thumb">img</div>
+        </div>
+        <div class="lab" style="font-family:var(--mono);font-size:10.5px;color:var(--ink-soft)">꾸미기 툴바</div>
+        <div class="toolbar">
+          <div class="tool">✎ 펜</div><div class="tool">◕ 스티커</div><div class="tool">T 글자</div><div class="tool">⇄ 드래그</div>
+        </div>
+        <div class="spacer"></div>
+        <div class="row c2">
+          <div class="btn-line">임시저장</div><div class="cta" style="padding:9px">저장</div>
+        </div>
+        <div class="row c2">
+          <div class="btn-line">이미지 내보내기</div><div class="btn-line">공유 링크 · 썸네일</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. 로그인 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">1</span><span class="t">로그인</span><span class="r">/login</span></div>
+      <div class="screen-body">
+        <div class="avatar">프로필</div>
+        <div class="blk dash" style="text-align:center"><div class="txt">로그인하고 내 무드보드를 저장하세요</div></div>
+        <div class="spacer"></div>
+        <div class="cta">카카오로 계속하기</div>
+        <div class="btn-line">Google로 계속하기</div>
+        <div class="note"><b>저장 시점에만</b> 로그인 유도(게이팅) — 테스트는 로그인 없이 진행</div>
+      </div>
+    </section>
+
+    <!-- 6. 히스토리 -->
+    <section class="screen">
+      <div class="screen-head"><span class="n">6</span><span class="t">히스토리</span><span class="r">/history</span></div>
+      <div class="screen-body">
+        <div class="blk dash"><div class="lab">My boards</div><div class="txt">내 무드보드 히스토리</div></div>
+        <div class="thumbs">
+          <div class="thumb"><span class="del">✕</span>board 01</div>
+          <div class="thumb"><span class="del">✕</span>board 02</div>
+          <div class="thumb"><span class="del">✕</span>board 03</div>
+          <div class="thumb"><span class="del">✕</span>board 04</div>
+        </div>
+        <div class="note">항목별 <b>삭제(✕)</b> · 탭하면 상세(5)로 이동</div>
+        <div class="spacer"></div>
+        <div class="cta">+ 새 무드보드 만들기</div>
+      </div>
+    </section>
+
+  </main>
+
+  <section class="section">
+    <h2>페이지 간 이동 흐름</h2>
+    <p class="sub">데모용 핵심 여정 (Step 12 기준)</p>
+    <div class="flow">
+      <div class="step"><b>2</b>메인</div><span class="arrow">→</span>
+      <div class="step"><b>3</b>테스트</div><span class="arrow">→</span>
+      <div class="step"><b>4</b>생성중</div><span class="arrow">→</span>
+      <div class="step"><b>5</b>무드보드</div><span class="arrow">→</span>
+      <div class="step gate"><b>1</b>로그인 게이팅</div><span class="arrow">→</span>
+      <div class="step"><b>6</b>히스토리</div><span class="arrow">↺</span>
+      <div class="step"><b>3</b>재생성 루프</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>합의 사항</h2>
+    <p class="sub">스케치 토론에서 팀이 맞춘 내용 (초안 — 워크숍에서 확정)</p>
+    <div class="cards">
+      <div class="card">
+        <h3>디자인 방향</h3>
+        <ul>
+          <li>감성·아날로그 무드의 <b>따뜻한 인터랙티브</b> UI</li>
+          <li>이미지가 주인공 — 텍스트·크롬은 최소화</li>
+          <li>완성까지의 <b>기대감</b>(진행률·실시간 미리보기)을 연출</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>공통 UI 규칙</h3>
+        <ul>
+          <li><b>모바일 세로</b> 우선, 단일 컬럼 흐름</li>
+          <li>주요 행동은 <b>하단 고정 CTA</b> 1개로 명확히</li>
+          <li>이미지는 카드/썸네일 그리드, 라운드 8px 통일</li>
+          <li>인터랙션 요소는 accent 색으로만 구분</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>구현 시 유의</h3>
+        <ul>
+          <li>테스트는 <b>비로그인</b> 진행 → 저장 시점 게이팅</li>
+          <li>생성 지연 대비 <b>임시저장·진행 상태</b> 필수</li>
+          <li>공유 링크 <b>썸네일(OG)</b> 미리 설계</li>
+          <li>히스토리 삭제는 되돌리기 확인 절차</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>docs/13_sketch_and_decision.md · 원본: docs/11_page_routing_split.md, docs/12_customer_journey_map.md</footer>
+</div>
