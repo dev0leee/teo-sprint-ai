@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MOOD ME — 나를 무드로 표현하다</title>
+<meta name="description" content="질문 몇 개로 완성하는 나만의 추구생보드. 내가 보는 나와 친구들이 보는 나를 무드로 비교하는 새로운 소셜 경험, 무드미." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+  :root {
+    --ink: oklch(28% 0.045 315);          /* deep plum charcoal */
+    --ink-soft: oklch(43% 0.04 315);
+    --ivory: oklch(96.5% 0.011 75);       /* reference panel ivory */
+    --peach: oklch(85% 0.09 55);
+    --coral: oklch(80% 0.11 15);
+    --lavender: oklch(82% 0.075 300);
+    --peri: oklch(72% 0.11 280);
+    --butter: oklch(91% 0.09 90);
+    --line: oklch(32% 0.04 315 / .55);
+    --serif-ko: "Gowun Batang", "Nanum Myeongjo", serif;
+    --serif-en: "Italiana", "Gowun Batang", serif;
+    --sans: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--ivory);
+    line-height: 1.7;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: oklch(72% 0.11 280 / .35); }
+
+  /* ---------- film grain over everything ---------- */
+  .grain {
+    position: fixed; inset: -50%;
+    width: 200%; height: 200%;
+    pointer-events: none;
+    z-index: 60;
+    opacity: .38;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- shared ---------- */
+  .wrap { max-width: 68rem; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 3rem); }
+  .en { font-family: var(--serif-en); font-weight: 400; letter-spacing: .015em; }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.2; font-weight: 400; }
+  p { text-wrap: pretty; }
+  section { position: relative; }
+
+  .section-title {
+    font-family: var(--serif-en);
+    font-size: clamp(2.4rem, 6vw, 4.2rem);
+    letter-spacing: .02em;
+    display: flex; align-items: center; gap: clamp(.75rem, 3vw, 1.5rem);
+  }
+  .section-title::after {
+    content: ""; flex: 1; height: 1px; background: var(--line); min-width: 2rem;
+  }
+  .spark { flex: none; width: clamp(20px, 3vw, 30px); height: auto; }
+
+  /* ---------- nav ---------- */
+  header.nav {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.4rem clamp(1.25rem, 4vw, 2.5rem);
+    font-size: .85rem;
+  }
+  header.nav .mark { font-family: var(--serif-en); font-size: 1.25rem; letter-spacing: .12em; }
+  header.nav nav { display: flex; gap: 1.6rem; }
+  header.nav a { color: var(--ink); text-decoration: none; }
+  header.nav nav a { border-bottom: 1px solid transparent; padding-bottom: 2px; transition: border-color .3s var(--ease-out); }
+  header.nav nav a:hover { border-color: var(--ink); }
+  @media (max-width: 620px) { header.nav nav { display: none; } }
+
+  /* ---------- hero ---------- */
+  .hero {
+    min-height: 100svh;
+    display: grid; place-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(52% 44% at 18% 20%, oklch(80% 0.09 265 / .85), transparent 70%),
+      radial-gradient(55% 48% at 85% 16%, oklch(87% 0.075 25 / .9), transparent 70%),
+      radial-gradient(60% 55% at 78% 82%, oklch(87% 0.095 60 / .95), transparent 72%),
+      radial-gradient(50% 45% at 12% 85%, oklch(84% 0.075 310 / .85), transparent 70%),
+      radial-gradient(40% 38% at 50% 50%, oklch(92% 0.05 85 / .8), transparent 75%),
+      linear-gradient(160deg, oklch(90% 0.04 290), oklch(91% 0.055 55));
+  }
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(70px); opacity: .55; pointer-events: none;
+  }
+  .blob-1 { width: 44vmax; height: 40vmax; left: -12vmax; top: -10vmax; background: oklch(78% 0.1 280); animation: drift1 26s ease-in-out infinite alternate; }
+  .blob-2 { width: 40vmax; height: 36vmax; right: -10vmax; bottom: -12vmax; background: oklch(84% 0.11 45); animation: drift2 31s ease-in-out infinite alternate; }
+  .blob-3 { width: 26vmax; height: 26vmax; right: 8vmax; top: -6vmax; background: oklch(84% 0.1 15); animation: drift1 22s ease-in-out infinite alternate-reverse; }
+  @keyframes drift1 { to { transform: translate(6vmax, 4vmax) scale(1.12); } }
+  @keyframes drift2 { to { transform: translate(-5vmax, -5vmax) scale(1.08); } }
+
+  .hero-inner { position: relative; z-index: 5; padding: 6rem 1.25rem 4rem; max-width: 60rem; }
+
+  .hero-oval {
+    position: relative;
+    display: inline-block;
+    padding: clamp(1.6rem, 4.5vw, 3rem) clamp(2.4rem, 7vw, 5.5rem);
+  }
+  .hero-oval svg.oval-line {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    overflow: visible;
+  }
+  .hero-oval .oval-line ellipse { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .hero-title {
+    font-family: var(--serif-en);
+    font-size: clamp(3.2rem, 11vw, 6rem);
+    letter-spacing: .06em;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .hero-star {
+    position: absolute; top: -8px; right: -6px;
+    width: clamp(28px, 4vw, 44px); height: auto;
+    animation: twinkle 3.4s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(.78) rotate(18deg); opacity: .75; } }
+
+  .hero-sub {
+    margin-top: 1.6rem;
+    font-family: var(--serif-ko);
+    font-size: clamp(1.05rem, 2.6vw, 1.4rem);
+    letter-spacing: .28em;
+    text-indent: .28em;
+  }
+  .hero-chips {
+    margin-top: 2.6rem;
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .7rem 1rem;
+  }
+  .chip {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: .5rem 1.25rem;
+    font-size: .88rem;
+    letter-spacing: .04em;
+    background: oklch(100% 0 0 / .28);
+    backdrop-filter: blur(2px);
+  }
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    z-index: 5; font-size: .78rem; letter-spacing: .3em; text-indent: .3em;
+    color: var(--ink-soft);
+  }
+  .scroll-hint::after {
+    content: ""; display: block; width: 1px; height: 2.6rem;
+    background: var(--line); margin: .6rem auto 0;
+    animation: dropline 2.2s var(--ease-out) infinite;
+    transform-origin: top;
+  }
+  @keyframes dropline { 0% { transform: scaleY(0); } 45% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+  /* ornamental side lines (ref: title slide) */
+  .side-orna {
+    position: absolute; top: 8rem; bottom: 8rem; width: 1px;
+    background: var(--line); z-index: 4;
+  }
+  .side-orna::before, .side-orna::after {
+    content: ""; position: absolute; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 14px; border: 1px solid var(--ink); border-radius: 50%;
+    background: transparent;
+  }
+  .side-orna::before { top: -18px; }
+  .side-orna::after { bottom: 32%; width: 9px; height: 9px; background: var(--ink); }
+  .side-orna.left { left: clamp(1.5rem, 4vw, 3.5rem); }
+  .side-orna.right { right: clamp(1.5rem, 4vw, 3.5rem); }
+  @media (max-width: 720px) { .side-orna { display: none; } }
+
+  /* ---------- why ---------- */
+  .why { background: var(--ivory); padding: clamp(6rem, 12vw, 9.5rem) 0; overflow: hidden; }
+  .why .orbit {
+    position: absolute; right: -6rem; top: 3rem;
+    width: 22rem; height: 9rem;
+    border: 1px solid var(--line); border-radius: 50%;
+    transform: rotate(-16deg);
+    pointer-events: none;
+  }
+  .why-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(2.5rem, 6vw, 5rem); align-items: start; margin-top: clamp(2.5rem, 6vw, 4rem); }
+  @media (max-width: 780px) { .why-grid { grid-template-columns: 1fr; } }
+
+  .why-quote {
+    font-family: var(--serif-ko);
+    font-size: clamp(1.5rem, 3.6vw, 2.3rem);
+    line-height: 1.55;
+    position: relative;
+    padding-top: 1.2rem;
+  }
+  .why-quote em { font-style: normal; box-shadow: inset 0 -0.5em 0 oklch(85% 0.1 55 / .55); }
+  .why-quote::before {
+    content: "“";
+    position: absolute; top: -1.4rem; left: -.4rem;
+    font-family: var(--serif-en); font-size: 4.4rem; line-height: 1;
+    color: oklch(72% 0.11 280 / .8);
+  }
+  .why-body p { max-width: 34rem; color: var(--ink-soft); margin-bottom: 1.3rem; font-size: 1.02rem; }
+  .why-body strong { color: var(--ink); font-weight: 650; }
+  .why-punch {
+    margin-top: 2.2rem;
+    font-family: var(--serif-ko); font-weight: 700;
+    font-size: 1.15rem; color: var(--ink);
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .why-punch svg { width: 18px; flex: none; }
+
+  /* ---------- how ---------- */
+  .how { padding: clamp(6rem, 12vw, 9rem) 0 clamp(4rem, 9vw, 7rem); background: var(--ivory); }
+  .how-block {
+    border-radius: clamp(1.4rem, 3vw, 2.2rem);
+    padding: clamp(2.4rem, 6vw, 4.5rem) clamp(1.4rem, 5vw, 4rem);
+    margin-top: clamp(2.6rem, 6vw, 4rem);
+    position: relative;
+    overflow: hidden;
+  }
+  .how-block.me {
+    background:
+      radial-gradient(60% 70% at 85% 10%, oklch(88% 0.08 45 / .9), transparent 70%),
+      radial-gradient(55% 65% at 8% 90%, oklch(84% 0.07 310 / .8), transparent 70%),
+      linear-gradient(150deg, oklch(93% 0.035 75), oklch(90% 0.05 320));
+  }
+  .how-block.friends {
+    background:
+      radial-gradient(60% 70% at 12% 8%, oklch(82% 0.085 270 / .85), transparent 70%),
+      radial-gradient(55% 60% at 90% 92%, oklch(86% 0.09 20 / .85), transparent 72%),
+      linear-gradient(200deg, oklch(92% 0.04 290), oklch(90% 0.05 40));
+  }
+  .how-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+  .how-num {
+    font-family: var(--serif-en);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    line-height: 1;
+  }
+  .how-title { font-family: var(--serif-ko); font-weight: 700; font-size: clamp(1.5rem, 3.4vw, 2.1rem); }
+  .how-desc { margin-top: 1.4rem; max-width: 34rem; color: var(--ink-soft); }
+  .how-desc strong { color: var(--ink); font-weight: 650; }
+
+  .arches {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(.8rem, 2.5vw, 1.6rem);
+    margin-top: clamp(2.2rem, 5vw, 3.4rem);
+    counter-reset: step;
+  }
+  @media (max-width: 860px) { .arches { grid-template-columns: repeat(2, 1fr); } }
+
+  .arch {
+    background: oklch(97% 0.012 75 / .92);
+    border: 1px solid oklch(35% 0.04 315 / .35);
+    border-radius: 999px 999px 14px 14px;
+    padding: 2.1rem 1rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 10px 24px oklch(50% 0.08 300 / .14);
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: .5rem;
+    transition: transform .5s var(--ease-out), box-shadow .5s var(--ease-out);
+  }
+  .arch:hover { transform: translateY(-6px); box-shadow: 0 18px 34px oklch(50% 0.08 300 / .2); }
+  .arch .curve { width: 82%; max-width: 130px; height: auto; overflow: visible; }
+  .arch .curve text {
+    font-family: var(--serif-ko); font-weight: 700;
+    font-size: 21px; letter-spacing: 3px;
+    fill: var(--ink);
+  }
+  .arch .arch-sub { font-size: .82rem; color: var(--ink-soft); line-height: 1.55; max-width: 11em; }
+  .arch::after {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--serif-en);
+    font-size: .8rem; letter-spacing: .1em;
+    color: var(--ink-soft);
+    margin-top: .4rem;
+    border-top: 1px solid var(--line);
+    padding-top: .5rem; width: 3.2rem;
+  }
+  .arch-star { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); width: 20px; }
+
+  .how-tagline {
+    margin-top: clamp(2rem, 5vw, 3rem);
+    text-align: center;
+    font-family: var(--serif-ko);
+    font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+    letter-spacing: .14em; text-indent: .14em;
+  }
+  .how-tagline span { display: inline-flex; align-items: center; gap: .9rem; }
+  .how-tagline .rule { width: clamp(2rem, 6vw, 4rem); height: 1px; background: var(--line); }
+
+  /* ---------- kick ---------- */
+  .kick {
+    padding: clamp(6rem, 12vw, 10rem) 0;
+    background: var(--ink);
+    color: oklch(94% 0.015 75);
+    overflow: hidden;
+  }
+  .kick .section-title { color: oklch(94% 0.015 75); }
+  .kick .section-title::after { background: oklch(94% 0.02 75 / .35); }
+  .kick-lede {
+    font-family: var(--serif-ko);
+    font-size: clamp(1.7rem, 4.5vw, 2.8rem);
+    margin-top: clamp(2rem, 5vw, 3.2rem);
+    line-height: 1.5;
+    max-width: 22em;
+  }
+  .kick-lede .hl { color: oklch(87% 0.09 55); }
+  .kick-boards {
+    margin-top: clamp(3rem, 7vw, 5rem);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: clamp(1.2rem, 4vw, 2.6rem);
+    align-items: stretch;
+  }
+  @media (max-width: 800px) { .kick-boards { grid-template-columns: 1fr; } }
+
+  .board {
+    border-radius: 1.4rem;
+    padding: clamp(1.6rem, 4vw, 2.6rem);
+    color: var(--ink);
+    display: flex; flex-direction: column; gap: 1.4rem;
+    min-height: 20rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .board.self {
+    background:
+      radial-gradient(70% 60% at 20% 15%, oklch(86% 0.06 300 / .9), transparent 75%),
+      radial-gradient(65% 60% at 85% 88%, oklch(80% 0.09 270 / .9), transparent 75%),
+      linear-gradient(170deg, oklch(92% 0.03 290), oklch(86% 0.06 265));
+  }
+  .board.others {
+    background:
+      radial-gradient(70% 60% at 80% 12%, oklch(90% 0.09 85 / .95), transparent 75%),
+      radial-gradient(65% 60% at 12% 90%, oklch(85% 0.1 25 / .9), transparent 75%),
+      linear-gradient(190deg, oklch(93% 0.045 70), oklch(88% 0.08 40));
+  }
+  .board-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .85rem; letter-spacing: .06em;
+  }
+  .board-label .en { font-size: 1rem; letter-spacing: .1em; }
+  .board-words {
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: .9rem;
+  }
+  .board-words .word {
+    font-family: var(--serif-ko); font-weight: 700;
+    font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+    line-height: 1.25;
+  }
+  .board-words .word:nth-child(2) { margin-left: clamp(1.4rem, 4vw, 2.6rem); }
+  .board-words .word:nth-child(3) { margin-left: clamp(.5rem, 2vw, 1.2rem); font-style: italic; }
+  .board-foot { font-size: .8rem; color: oklch(38% 0.04 315 / .85); }
+
+  .kick-vs {
+    display: grid; place-items: center;
+    font-family: var(--serif-en);
+    font-size: 1.5rem;
+    color: oklch(90% 0.05 75);
+  }
+  .kick-vs .vs-inner { display: flex; flex-direction: column; align-items: center; gap: .8rem; }
+  .kick-vs .vline { width: 1px; height: clamp(2rem, 6vw, 4rem); background: oklch(94% 0.02 75 / .35); }
+  @media (max-width: 800px) {
+    .kick-vs .vline { width: clamp(2rem, 10vw, 4rem); height: 1px; }
+    .kick-vs .vs-inner { flex-direction: row; }
+  }
+  .kick-note {
+    margin-top: clamp(2.6rem, 6vw, 4rem);
+    max-width: 36rem;
+    color: oklch(80% 0.02 75);
+    font-size: 1rem;
+  }
+  .kick-note strong { color: oklch(94% 0.015 75); font-weight: 650; }
+
+  /* ---------- moments marquee ---------- */
+  .moments { padding: clamp(5rem, 10vw, 8rem) 0 0; background: var(--ivory); }
+  .moments .wrap { margin-bottom: clamp(2rem, 5vw, 3rem); }
+  .moments-sub { margin-top: 1.2rem; color: var(--ink-soft); max-width: 30rem; }
+  .marquee {
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 1.4rem 0;
+    display: flex;
+  }
+  .marquee-track {
+    display: flex; flex: none; align-items: center;
+    gap: 2.6rem; padding-right: 2.6rem;
+    animation: marquee 30s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes marquee { to { transform: translateX(-100%); } }
+  .marquee .m-item {
+    font-family: var(--serif-ko); font-weight: 700;
+    font-size: clamp(1.4rem, 3.4vw, 2.1rem);
+    display: inline-flex; align-items: center; gap: 2.6rem;
+  }
+  .marquee .m-item svg { width: 20px; height: 20px; flex: none; color: oklch(72% 0.11 280); }
+
+  /* ---------- appeal ---------- */
+  .appeal { padding: clamp(6rem, 12vw, 9rem) 0; background: var(--ivory); }
+  .appeal-list { margin-top: clamp(2.5rem, 6vw, 4rem); border-top: 1px solid var(--line); }
+  .appeal-row {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, 8rem) 1fr;
+    gap: clamp(1rem, 4vw, 3rem);
+    padding: clamp(1.6rem, 4vw, 2.4rem) 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+  .appeal-num { font-family: var(--serif-en); font-size: clamp(1.8rem, 4vw, 2.6rem); }
+  .appeal-text { font-family: var(--serif-ko); font-size: clamp(1.15rem, 2.8vw, 1.6rem); line-height: 1.6; max-width: 30em; }
+  .appeal-text .soft { color: var(--ink-soft); }
+  .appeal-row .tint { box-shadow: inset 0 -0.45em 0 var(--tint, transparent); font-style: normal; }
+  .appeal-row:nth-child(1) .tint { --tint: oklch(85% 0.1 55 / .5); }
+  .appeal-row:nth-child(2) .tint { --tint: oklch(84% 0.08 310 / .5); }
+  .appeal-row:nth-child(3) .tint { --tint: oklch(80% 0.09 270 / .45); }
+  .appeal-row:nth-child(4) .tint { --tint: oklch(85% 0.1 20 / .5); }
+
+  /* ---------- outro ---------- */
+  .outro {
+    min-height: 88svh;
+    display: grid; place-items: center;
+    text-align: center;
+    position: relative; overflow: hidden;
+    background:
+      radial-gradient(55% 50% at 22% 25%, oklch(83% 0.085 300 / .9), transparent 70%),
+      radial-gradient(60% 55% at 80% 20%, oklch(87% 0.09 50 / .9), transparent 72%),
+      radial-gradient(55% 50% at 75% 85%, oklch(78% 0.1 275 / .85), transparent 70%),
+      radial-gradient(45% 45% at 18% 88%, oklch(86% 0.1 20 / .85), transparent 72%),
+      linear-gradient(20deg, oklch(90% 0.05 320), oklch(91% 0.05 60));
+  }
+  .outro-inner { position: relative; z-index: 5; padding: 5rem 1.25rem; }
+  .outro-kicker { font-family: var(--serif-ko); letter-spacing: .3em; text-indent: .3em; font-size: .95rem; }
+  .outro-title {
+    font-family: var(--serif-en);
+    font-size: clamp(3rem, 10vw, 5.6rem);
+    letter-spacing: .06em;
+    margin-top: 1.2rem;
+    line-height: 1.05;
+  }
+  .outro-line {
+    font-family: var(--serif-ko);
+    font-size: clamp(1.2rem, 3vw, 1.7rem);
+    margin-top: 1.6rem;
+  }
+  .outro-sub { margin-top: .9rem; color: var(--ink-soft); }
+  .cta {
+    display: inline-block;
+    margin-top: 2.8rem;
+    padding: 1.05rem 2.8rem;
+    border-radius: 999px;
+    background: var(--ink);
+    color: oklch(96% 0.01 75);
+    text-decoration: none;
+    font-size: 1rem;
+    letter-spacing: .05em;
+    transition: transform .45s var(--ease-out), box-shadow .45s var(--ease-out);
+    box-shadow: 0 14px 30px oklch(28% 0.05 315 / .3);
+  }
+  .cta:hover { transform: translateY(-3px); box-shadow: 0 22px 40px oklch(28% 0.05 315 / .38); }
+
+  footer {
+    background: var(--ivory);
+    padding: 2.2rem 0 2.6rem;
+    text-align: center;
+    font-size: .8rem;
+    color: var(--ink-soft);
+  }
+  footer .en { letter-spacing: .14em; }
+
+  /* ---------- reveal on scroll (JS enhances; content visible without it) ---------- */
+  html.js .reveal { opacity: 0; transform: translateY(26px); }
+  html.js .reveal.in {
+    opacity: 1; transform: none;
+    transition: opacity .9s var(--ease-out), transform .9s var(--ease-out);
+    transition-delay: var(--d, 0s);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .blob, .hero-star, .scroll-hint::after { animation: none !important; }
+    .marquee { overflow-x: auto; }
+    .marquee-track { animation: none; flex-wrap: wrap; white-space: normal; }
+    .marquee-track[aria-hidden="true"] { display: none; }
+    html.js .reveal { opacity: 1; transform: none; transition: none; }
+    .arch, .cta { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <header class="nav">
+    <a class="mark" href="#top">MOOD ME</a>
+    <nav aria-label="섹션 이동">
+      <a href="#why">Why</a>
+      <a href="#how">How to Use</a>
+      <a href="#kick">The Kick</a>
+      <a href="#appeal">Appeal</a>
+    </nav>
+  </header>
+
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="blob blob-3" aria-hidden="true"></div>
+  <div class="side-orna left" aria-hidden="true"></div>
+  <div class="side-orna right" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <div class="hero-oval">
+      <svg class="oval-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <ellipse cx="50" cy="50" rx="49" ry="46" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <svg class="hero-star" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/>
+      </svg>
+      <h1 class="hero-title">MOOD&nbsp;ME</h1>
+    </div>
+    <p class="hero-sub">무드미 · 나를 무드로 표현하다</p>
+    <div class="hero-chips">
+      <span class="chip">3분 만에 추구생보드 완성</span>
+      <span class="chip">친구와 함께 만드는 보드</span>
+      <span class="chip">오늘의 무드는?</span>
+    </div>
+  </div>
+
+  <p class="scroll-hint" aria-hidden="true">SCROLL</p>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="why" id="why">
+  <div class="orbit" aria-hidden="true"></div>
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      Why, Mood&nbsp;Me?
+      <svg class="spark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg>
+    </h2>
+    <div class="why-grid">
+      <blockquote class="why-quote reveal">
+        추구생보드는 만들고 싶은데,<br />
+        <em>핀터레스트에서만 세 시간째...</em>
+      </blockquote>
+      <div class="why-body reveal" style="--d:.15s">
+        <p>예쁜 이미지를 찾고 배치하는 데만 많은 시간이 듭니다.</p>
+        <p>하지만 정작 중요한 것은 <strong>'내가 어떤 사람인지'</strong>, <strong>'친구들은 나를 어떻게 바라보는지'</strong>를 표현하는 것입니다.</p>
+        <p class="why-punch">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="oklch(72% 0.11 280)"/></svg>
+          무드미는 누구나 쉽고 재미있게<br />자신만의 분위기와 취향을 표현할 수 있도록 시작되었습니다.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW TO USE ============ -->
+<section class="how" id="how">
+  <div class="wrap">
+    <h2 class="section-title reveal">How to Use</h2>
+
+    <!-- ① 내가 만드는 나 -->
+    <article class="how-block me reveal">
+      <div class="how-head">
+        <span class="how-num en">①</span>
+        <h3 class="how-title">내가 만드는 나</h3>
+      </div>
+      <p class="how-desc">몇 가지 질문과 선택만으로 나의 취향과 분위기를 분석합니다.<br /><strong>AI가 키워드와 컬러, 이미지를 조합</strong>하여 나만의 추구생보드를 만들어줍니다.</p>
+
+      <div class="arches">
+        <div class="arch reveal" style="--d:0s">
+          <svg class="arch-star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="oklch(72% 0.11 280)"/></svg>
+          <svg class="curve" viewBox="0 0 130 44" aria-hidden="true">
+            <path id="arcA1" d="M8,42 A76,76 0 0 1 122,42" fill="none"/>
+            <text><textPath href="#arcA1" startOffset="50%" text-anchor="middle">질문</textPath></text>
+          </svg>
+          <p class="arch-sub">가볍게 답하는<br />나에 대한 질문들</p>
+        </div>
+        <div class="arch reveal" style="--d:.1s">
+          <svg class="curve" viewBox="0 0 130 44" aria-hidden="true">
+            <path id="arcA2" d="M8,42 A76,76 0 0 1 122,42" fill="none"/>
+            <text><textPath href="#arcA2" startOffset="50%" text-anchor="middle">선택</textPath></text>
+          </svg>
+          <p class="arch-sub">이미지에서 텍스트로,<br />끌리는 쪽을 고르기</p>
+        </div>
+        <div class="arch reveal" style="--d:.2s">
+          <svg class="curve" viewBox="0 0 130 44" aria-hidden="true">
+            <path id="arcA3" d="M8,42 A76,76 0 0 1 122,42" fill="none"/>
+            <text><textPath href="#arcA3" startOffset="50%" text-anchor="middle">분석</textPath></text>
+          </svg>
+          <p class="arch-sub">AI가 취향을 읽고<br />무드를 조합</p>
+        </div>
+        <div class="arch reveal" style="--d:.3s">
+          <svg class="curve" viewBox="0 0 130 44" aria-hidden="true">
+            <path id="arcA4" d="M8,42 A76,76 0 0 1 122,42" fill="none"/>
+            <text><textPath href="#arcA4" startOffset="50%" text-anchor="middle">완성</textPath></text>
+          </svg>
+          <p class="arch-sub">나만의 추구생보드<br />공유까지 한 번에</p>
+        </div>
+      </div>
+
+      <p class="how-tagline"><span><span class="rule" aria-hidden="true"></span>나를 발견하는 시간<span class="rule" aria-hidden="true"></span></span></p>
+    </article>
+
+    <!-- ② 친구가 만들어주는 나 -->
+    <article class="how-block friends reveal">
+      <div class="how-head">
+        <span class="how-num en">②</span>
+        <h3 class="how-title">친구가 만들어주는 나</h3>
+      </div>
+      <p class="how-desc">친구들이 <strong>"너를 떠올리면 생각나는 분위기"</strong>를 모아 하나의 추구생보드를 만들어줍니다.<br />내가 생각하는 나와 친구들이 바라보는 나를 비교하며 새로운 나를 발견할 수 있습니다.</p>
+
+      <div class="arches">
+        <div class="arch reveal" style="--d:0s">
+          <svg class="arch-star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="oklch(80% 0.11 25)"/></svg>
+          <svg class="curve" viewBox="0 0 160 44" aria-hidden="true">
+            <path id="arcB1" d="M8,42 A100,100 0 0 1 152,42" fill="none"/>
+            <text><textPath href="#arcB1" startOffset="50%" text-anchor="middle">친구 선택</textPath></text>
+          </svg>
+          <p class="arch-sub">보드를 만들어줄<br />친구를 초대</p>
+        </div>
+        <div class="arch reveal" style="--d:.1s">
+          <svg class="curve" viewBox="0 0 160 44" aria-hidden="true">
+            <path id="arcB2" d="M8,42 A100,100 0 0 1 152,42" fill="none"/>
+            <text><textPath href="#arcB2" startOffset="50%" text-anchor="middle">생각 공유</textPath></text>
+          </svg>
+          <p class="arch-sub">"너 하면 떠오르는 무드"<br />를 각자 답하기</p>
+        </div>
+        <div class="arch reveal" style="--d:.2s">
+          <svg class="curve" viewBox="0 0 160 44" aria-hidden="true">
+            <path id="arcB3" d="M8,42 A100,100 0 0 1 152,42" fill="none"/>
+            <text><textPath href="#arcB3" startOffset="50%" text-anchor="middle">의견 모으기</textPath></text>
+          </svg>
+          <p class="arch-sub">흩어진 시선들이<br />하나의 무드로</p>
+        </div>
+        <div class="arch reveal" style="--d:.3s">
+          <svg class="curve" viewBox="0 0 160 44" aria-hidden="true">
+            <path id="arcB4" d="M8,42 A100,100 0 0 1 152,42" fill="none"/>
+            <text><textPath href="#arcB4" startOffset="50%" text-anchor="middle">보드 완성</textPath></text>
+          </svg>
+          <p class="arch-sub">친구들이 선물하는<br />또 하나의 나</p>
+        </div>
+      </div>
+
+      <p class="how-tagline"><span><span class="rule" aria-hidden="true"></span>서로를 발견하는 시간<span class="rule" aria-hidden="true"></span></span></p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ THE KICK ============ -->
+<section class="kick" id="kick">
+  <div class="wrap">
+    <h2 class="section-title reveal">
+      The Kick!
+      <svg class="spark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg>
+    </h2>
+    <p class="kick-lede reveal">같은 나인데,<br /><span class="hl">보는 건 두 개.</span></p>
+
+    <div class="kick-boards">
+      <div class="board self reveal">
+        <div class="board-label">
+          <span>내가 생각하는 나</span>
+          <span class="en" aria-hidden="true">SELF</span>
+        </div>
+        <div class="board-words">
+          <p class="word">차분한</p>
+          <p class="word">감성적인</p>
+          <p class="word">나만의 시간</p>
+        </div>
+        <p class="board-foot">MOOD BOARD · by me</p>
+      </div>
+
+      <div class="kick-vs reveal" style="--d:.15s" aria-hidden="true">
+        <div class="vs-inner"><span class="vline"></span><span>&amp;</span><span class="vline"></span></div>
+      </div>
+
+      <div class="board others reveal" style="--d:.25s">
+        <div class="board-label">
+          <span>친구들이 생각하는 나</span>
+          <span class="en" aria-hidden="true">FRIENDS</span>
+        </div>
+        <div class="board-words">
+          <p class="word">밝은</p>
+          <p class="word">텐션 있는</p>
+          <p class="word">사람 좋아하는</p>
+        </div>
+        <p class="board-foot">MOOD BOARD · by friends</p>
+      </div>
+    </div>
+
+    <p class="kick-note reveal">같은 사람이라도 내가 생각하는 모습과 타인이 바라보는 모습은 다를 수 있습니다. <strong>이 차이를 비교하는 과정 자체가 새로운 재미와 공감이 되는 콘텐츠</strong>입니다.</p>
+  </div>
+</section>
+
+<!-- ============ FOR THIS MOMENT ============ -->
+<section class="moments" id="moments">
+  <div class="wrap">
+    <h2 class="section-title reveal">For This Moment</h2>
+    <p class="moments-sub reveal">특별한 순간마다 무드미가 어울립니다. 함께한 시간을 하나의 무드로 남겨보세요.</p>
+  </div>
+  <div class="marquee" aria-label="무드미가 어울리는 순간들">
+    <div class="marquee-track">
+      <span class="m-item">생일 선물 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">여행 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">MT · 워크숍 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">커플 · 우정 기념일 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">연말 회고 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+    </div>
+    <div class="marquee-track" aria-hidden="true">
+      <span class="m-item">생일 선물 <svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">여행 <svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">MT · 워크숍 <svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">커플 · 우정 기념일 <svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+      <span class="m-item">연말 회고 <svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APPEAL POINT ============ -->
+<section class="appeal" id="appeal">
+  <div class="wrap">
+    <h2 class="section-title reveal">Appeal Point</h2>
+    <div class="appeal-list">
+      <div class="appeal-row reveal">
+        <span class="appeal-num">01</span>
+        <p class="appeal-text">유행하는 추구생보드를 <span class="tint">누구나 질문 몇 개만으로 완성</span></p>
+      </div>
+      <div class="appeal-row reveal" style="--d:.05s">
+        <span class="appeal-num">02</span>
+        <p class="appeal-text">혼자 해도 재미있고 <span class="tint">함께하면 게임이 되는 경험</span></p>
+      </div>
+      <div class="appeal-row reveal" style="--d:.1s">
+        <span class="appeal-num">03</span>
+        <p class="appeal-text">AI가 취향을 분석하고 <span class="tint">이미지와 무드를 한 번에 제작</span></p>
+      </div>
+      <div class="appeal-row reveal" style="--d:.15s">
+        <span class="appeal-num">04</span>
+        <p class="appeal-text">취향을 시작으로 <span class="tint">관계를 이어주는 새로운 소셜 경험</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ OUTRO ============ -->
+<section class="outro">
+  <div class="blob blob-1" aria-hidden="true"></div>
+  <div class="blob blob-2" aria-hidden="true"></div>
+  <div class="outro-inner">
+    <p class="outro-kicker reveal">한 줄 소개</p>
+    <h2 class="outro-title reveal" style="--d:.1s">MOOD ME</h2>
+    <p class="outro-line reveal" style="--d:.2s">"나를 무드로 표현하다."</p>
+    <p class="outro-sub reveal" style="--d:.3s">당신의 분위기가 하나의 보드가 됩니다.</p>
+    <a class="cta reveal" style="--d:.4s" href="#top">나의 무드보드 만들기</a>
+  </div>
+</section>
+
+<footer>
+  <p><span class="en">MOOD ME</span> · 무드미 — 나를 무드로 표현하다</p>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }
+  }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>MOOD ME — 앱 프로토타입</title>
+<meta name="description" content="질문 몇 개로 완성하는 나만의 추구생보드. MOOD ME 인터랙티브 프로토타입." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+  :root {
+    --ink: oklch(28% 0.045 315);
+    --ink-soft: oklch(43% 0.04 315);
+    --ivory: oklch(96.5% 0.011 75);
+    --line: oklch(32% 0.04 315 / .45);
+    --kakao: oklch(88% 0.16 100);
+    --serif-ko: "Gowun Batang", "Nanum Myeongjo", serif;
+    --serif-en: "Italiana", "Gowun Batang", serif;
+    --sans: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", sans-serif;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    /* z-scale */
+    --z-canvas: 3;
+    --z-decor: 4;
+    --z-chrome: 10;
+    --z-sheet: 20;
+    --z-toast: 30;
+    --z-grain: 40;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(50% 45% at 15% 20%, oklch(82% 0.08 280 / .8), transparent 70%),
+      radial-gradient(55% 50% at 85% 25%, oklch(87% 0.08 30 / .85), transparent 70%),
+      radial-gradient(55% 50% at 70% 90%, oklch(87% 0.09 60 / .9), transparent 72%),
+      radial-gradient(45% 42% at 12% 88%, oklch(84% 0.07 310 / .8), transparent 70%),
+      linear-gradient(160deg, oklch(91% 0.04 290), oklch(91% 0.05 55));
+    display: grid;
+    place-items: center;
+    padding: 2.2rem 1rem;
+    overflow: auto;
+  }
+  .grain {
+    position: fixed; inset: -50%; width: 200%; height: 200%;
+    pointer-events: none; z-index: var(--z-grain); opacity: .3;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- phone frame ---------- */
+  .phone {
+    position: relative;
+    width: min(410px, 100%);
+    height: min(852px, calc(100svh - 4.4rem));
+    min-height: 620px;
+    background: var(--ivory);
+    border-radius: 2.4rem;
+    box-shadow: 0 30px 70px oklch(30% 0.06 310 / .35), 0 0 0 1px oklch(30% 0.05 315 / .12);
+    overflow: hidden;
+    isolation: isolate;
+  }
+  @media (max-width: 480px) {
+    body { padding: 0; }
+    .phone { width: 100%; height: 100svh; min-height: 100svh; border-radius: 0; box-shadow: none; }
+  }
+  .frame-note {
+    position: fixed; bottom: .9rem; left: 50%; transform: translateX(-50%);
+    font-size: .72rem; letter-spacing: .14em; color: var(--ink-soft);
+    z-index: var(--z-chrome);
+  }
+  @media (max-width: 700px), (max-height: 760px) { .frame-note { display: none; } }
+
+  /* ---------- screens ---------- */
+  .screen {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .screen.active { display: flex; animation: screenIn .55s var(--ease-out); }
+  @keyframes screenIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .scrollable { overflow-y: auto; overscroll-behavior: contain; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: .55rem;
+    width: 100%; border: 0; cursor: pointer;
+    border-radius: 999px;
+    padding: 1.02rem 1.4rem;
+    font-family: var(--sans); font-size: 1rem; font-weight: 650;
+    letter-spacing: .02em;
+    transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out), opacity .2s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-ink { background: var(--ink); color: oklch(96% 0.01 75); box-shadow: 0 10px 24px oklch(28% 0.05 315 / .28); }
+  .btn-ink:hover { transform: translateY(-2px); }
+  .btn-kakao { background: var(--kakao); color: oklch(25% 0.03 100); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); font-weight: 500; font-size: .9rem; }
+  .btn-ghost:hover { color: var(--ink); }
+
+  /* ---------- login ---------- */
+  #screen-login {
+    justify-content: space-between;
+    text-align: center;
+    padding: 3.4rem 1.8rem 2.2rem;
+    background:
+      radial-gradient(60% 42% at 20% 12%, oklch(82% 0.08 275 / .85), transparent 70%),
+      radial-gradient(55% 40% at 85% 20%, oklch(88% 0.08 25 / .9), transparent 70%),
+      radial-gradient(60% 45% at 75% 88%, oklch(88% 0.09 60 / .95), transparent 72%),
+      radial-gradient(50% 40% at 10% 85%, oklch(85% 0.07 310 / .85), transparent 70%),
+      linear-gradient(165deg, oklch(92% 0.035 290), oklch(92% 0.05 55));
+  }
+  .login-hero { margin-top: 9vh; }
+  .login-oval {
+    position: relative; display: inline-block;
+    padding: 1.5rem 2.6rem;
+  }
+  .login-oval svg.oval { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .login-oval .oval ellipse { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+  .login-oval .star {
+    position: absolute; top: -4px; right: -2px; width: 26px;
+    animation: twinkle 3.4s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { transform: scale(1) rotate(0); } 50% { transform: scale(.75) rotate(18deg); opacity: .75; } }
+  .login-title { font-family: var(--serif-en); font-size: 2.7rem; letter-spacing: .07em; white-space: nowrap; line-height: 1; font-weight: 400; }
+  .login-sub { margin-top: 1.15rem; font-family: var(--serif-ko); letter-spacing: .22em; text-indent: .22em; font-size: .92rem; }
+  .login-copy { font-size: .9rem; color: var(--ink-soft); line-height: 1.75; }
+  .login-actions { display: grid; gap: .55rem; }
+
+  /* ---------- shared app top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: .8rem;
+    padding: 1.1rem 1.15rem .9rem;
+    z-index: var(--z-chrome);
+  }
+  .icon-btn {
+    flex: none;
+    width: 40px; height: 40px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 50%;
+    background: oklch(100% 0 0 / .5);
+    cursor: pointer;
+    color: var(--ink);
+    transition: background .25s;
+  }
+  .icon-btn:hover { background: oklch(100% 0 0 / .85); }
+  .icon-btn svg { width: 17px; height: 17px; }
+  .topbar .mark { font-family: var(--serif-en); font-size: 1.05rem; letter-spacing: .12em; }
+
+  /* ---------- main ---------- */
+  #screen-main { background: var(--ivory); }
+  .main-body { padding: .4rem 1.5rem 7.5rem; }
+  .main-kicker { font-family: var(--serif-en); font-size: 1.9rem; letter-spacing: .02em; line-height: 1.15; margin-top: 1.2rem; }
+  .main-lede { margin-top: .9rem; font-size: .93rem; color: var(--ink-soft); }
+  .main-lede strong { color: var(--ink); font-weight: 650; }
+
+  .example-board {
+    margin-top: 1.6rem;
+    border-radius: 1.3rem;
+    padding: .95rem;
+    background: oklch(99% 0.005 75);
+    border: 1px solid var(--line);
+    box-shadow: 0 14px 30px oklch(50% 0.07 300 / .14);
+    transform: rotate(-1.2deg);
+  }
+  .example-board .caption {
+    display: flex; justify-content: space-between;
+    font-size: .68rem; letter-spacing: .1em; color: var(--ink-soft);
+    padding: .55rem .2rem 0;
+  }
+  .mini-collage { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 52px; gap: .45rem; }
+  .mini-collage .t { border-radius: .65rem; }
+  .mini-collage .t.big { grid-column: span 2; grid-row: span 2; }
+  .mini-collage .t.wide { grid-column: span 2; }
+  .mini-collage .t.word {
+    display: grid; place-items: center;
+    font-family: var(--serif-ko); font-weight: 700; font-size: .82rem;
+    background: oklch(97% 0.012 75); border: 1px solid var(--line);
+  }
+  .mini-collage .t.word.en { font-family: var(--serif-en); font-size: .95rem; letter-spacing: .08em; }
+
+  .main-modes { margin-top: 1.9rem; display: grid; gap: .7rem; }
+  .mode-card {
+    border: 1px solid var(--line);
+    border-radius: 1.1rem;
+    padding: 1.05rem 1.2rem;
+    display: flex; align-items: center; gap: 1rem;
+    background: oklch(99% 0.005 75 / .7);
+  }
+  .mode-card .num { font-family: var(--serif-en); font-size: 1.5rem; flex: none; width: 1.4rem; text-align: center; }
+  .mode-card h3 { font-family: var(--serif-ko); font-size: 1.02rem; font-weight: 700; }
+  .mode-card p { font-size: .8rem; color: var(--ink-soft); margin-top: .15rem; }
+  .mode-card .soon {
+    margin-left: auto; flex: none;
+    font-size: .68rem; letter-spacing: .06em;
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: .25rem .7rem; color: var(--ink-soft);
+  }
+  .cta-dock {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 1rem 1.5rem calc(1.3rem + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--ivory) 62%, transparent);
+    z-index: var(--z-chrome);
+  }
+
+  /* ---------- test ---------- */
+  #screen-test { background: var(--ivory); }
+  .progress-wrap { flex: 1; display: flex; flex-direction: column; gap: .45rem; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: .72rem; letter-spacing: .08em; color: var(--ink-soft); }
+  .progress-meta .en { font-family: var(--serif-en); font-size: .85rem; }
+  .progress-track { height: 4px; border-radius: 999px; background: oklch(88% 0.015 75); overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, oklch(75% 0.1 280), oklch(83% 0.11 40));
+    transition: width .6s var(--ease-out);
+  }
+  .mood-dots { display: flex; gap: .35rem; padding: 0 1.15rem; }
+  .mood-dots .dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1px dashed var(--line);
+    transition: transform .4s var(--ease-out);
+  }
+  .mood-dots .dot.filled { border: 1px solid oklch(100% 0 0 / .7); box-shadow: 0 3px 8px oklch(40% 0.06 300 / .25); }
+  .test-body { flex: 1; display: flex; flex-direction: column; padding: 1.1rem 1.5rem 1.4rem; overflow-y: auto; }
+  .q-num { font-family: var(--serif-en); font-size: 1rem; letter-spacing: .14em; color: var(--ink-soft); }
+  .q-title { font-family: var(--serif-ko); font-weight: 700; font-size: 1.45rem; line-height: 1.45; margin-top: .5rem; text-wrap: balance; }
+  .q-sub { font-size: .84rem; color: var(--ink-soft); margin-top: .5rem; }
+
+  .options { margin-top: 1.5rem; display: grid; gap: .7rem; }
+  .options.tiles { grid-template-columns: 1fr 1fr; }
+  .opt {
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: oklch(99% 0.005 75);
+    cursor: pointer;
+    font-family: var(--sans);
+    text-align: left;
+    padding: 0;
+    overflow: hidden;
+    transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out), border-color .2s;
+  }
+  .opt:hover { transform: translateY(-3px); box-shadow: 0 12px 24px oklch(45% 0.07 300 / .16); }
+  .opt:active { transform: scale(.98); }
+  .opt .swatch { height: 92px; }
+  .opt .opt-label { display: block; padding: .7rem .85rem .8rem; font-size: .88rem; font-weight: 600; color: var(--ink); }
+  .opt .opt-label small { display: block; font-weight: 400; font-size: .74rem; color: var(--ink-soft); margin-top: .1rem; }
+  .options.chips .opt { padding: 1.02rem 1.2rem; border-radius: .95rem; }
+  .options.chips .opt .opt-label { padding: 0; }
+
+  .free-input { margin-top: 1.5rem; display: grid; gap: .8rem; }
+  .free-input input {
+    width: 100%;
+    border: 0; border-bottom: 1.5px solid var(--line);
+    background: transparent;
+    font-family: var(--serif-ko); font-size: 1.3rem; font-weight: 700;
+    padding: .6rem .1rem;
+    color: var(--ink);
+    border-radius: 0;
+  }
+  .free-input input:focus { outline: none; border-color: var(--ink); }
+  .free-input input::placeholder { color: oklch(60% 0.03 315); font-weight: 400; }
+  .test-spacer { flex: 1; }
+
+  /* ---------- generating ---------- */
+  #screen-generating {
+    justify-content: center; align-items: center; text-align: center;
+    padding: 2rem 1.8rem;
+    background:
+      radial-gradient(55% 40% at 18% 15%, oklch(82% 0.08 275 / .8), transparent 70%),
+      radial-gradient(50% 38% at 85% 25%, oklch(88% 0.08 25 / .85), transparent 70%),
+      radial-gradient(55% 42% at 70% 88%, oklch(88% 0.09 60 / .9), transparent 72%),
+      linear-gradient(165deg, oklch(92% 0.035 290), oklch(92% 0.05 55));
+  }
+  .gen-stage { position: relative; width: 210px; height: 210px; margin-inline: auto; }
+  .gen-stage .gt {
+    position: absolute; border-radius: .9rem;
+    opacity: 0; transform: scale(.6) rotate(var(--r, 0deg));
+    box-shadow: 0 10px 22px oklch(45% 0.07 300 / .2);
+  }
+  .gen-stage .gt.show { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)); transition: all .8s var(--ease-out); }
+  .gen-stage .sparkle {
+    position: absolute; inset: 0; margin: auto; width: 44px; height: 44px;
+    color: var(--ink);
+    animation: twinkle 2.2s ease-in-out infinite;
+  }
+  .gen-text { margin-top: 2.4rem; font-family: var(--serif-ko); font-weight: 700; font-size: 1.15rem; min-height: 1.8em; }
+  .gen-sub { margin-top: .4rem; font-size: .8rem; color: var(--ink-soft); }
+  .gen-bar { margin: 1.6rem auto 0; width: min(240px, 70%); height: 4px; border-radius: 999px; background: oklch(100% 0 0 / .5); overflow: hidden; }
+  .gen-bar i { display: block; height: 100%; width: 0%; background: var(--ink); border-radius: 999px; transition: width .45s var(--ease-out); }
+
+  /* ---------- board (edit) & complete ---------- */
+  #screen-board, #screen-complete { background: var(--ivory); }
+  .board-area { flex: 1; display: grid; place-items: center; padding: .3rem 1.15rem; min-height: 0; }
+  .board-frame {
+    position: relative;
+    width: 100%; max-width: 340px;
+    background: oklch(99% 0.005 75);
+    border: 1px solid var(--line);
+    border-radius: 1.2rem;
+    padding: .8rem;
+    box-shadow: 0 18px 40px oklch(45% 0.07 300 / .2);
+  }
+  .board-head { display: flex; justify-content: space-between; align-items: baseline; padding: .1rem .25rem .55rem; }
+  .board-head .bt { font-family: var(--serif-en); font-size: 1rem; letter-spacing: .12em; }
+  .board-head .bd { font-size: .66rem; letter-spacing: .1em; color: var(--ink-soft); }
+  .collage { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 56px; gap: .45rem; }
+  .collage .t { border-radius: .7rem; position: relative; overflow: hidden; }
+  .collage .t.big { grid-column: span 2; grid-row: span 2; }
+  .collage .t.wide { grid-column: span 2; }
+  .collage .t.tall { grid-row: span 2; }
+  .collage .t.word {
+    display: grid; place-items: center; text-align: center;
+    font-family: var(--serif-ko); font-weight: 700; font-size: .88rem;
+    background: oklch(97.5% 0.01 75); border: 1px solid var(--line);
+    padding: .2rem; line-height: 1.35;
+  }
+  .collage .t.word.title-tile { font-size: 1.02rem; }
+  .collage .t.word.en { font-family: var(--serif-en); font-weight: 400; font-size: 1rem; letter-spacing: .08em; }
+  .collage .t.word .tiny { display: block; font-family: var(--sans); font-weight: 400; font-size: .62rem; letter-spacing: .08em; color: var(--ink-soft); margin-top: .2rem; }
+  .collage .t .spark-svg { position: absolute; inset: 0; margin: auto; width: 30%; color: oklch(99% 0.005 75); }
+
+  .board-canvas {
+    position: absolute; inset: 0;
+    z-index: var(--z-canvas);
+    border-radius: 1.2rem;
+    touch-action: none;
+    display: none;
+  }
+  .board-frame.pen-mode .board-canvas { display: block; cursor: crosshair; }
+  .decor {
+    position: absolute; z-index: var(--z-decor);
+    left: 0; top: 0;
+    cursor: grab; user-select: none; touch-action: none;
+  }
+  .decor:active { cursor: grabbing; }
+  .decor.sticker svg { width: 40px; height: 40px; filter: drop-shadow(0 4px 8px oklch(40% 0.06 300 / .3)); }
+  .decor.label {
+    font-family: var(--serif-ko); font-weight: 700; font-size: 1.05rem;
+    color: var(--ink);
+    background: oklch(99% 0.005 75 / .85);
+    border: 1px solid var(--line);
+    padding: .25rem .7rem; border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 6px 14px oklch(40% 0.06 300 / .2);
+  }
+
+  .toolbar {
+    display: flex; justify-content: space-around; align-items: center;
+    padding: .7rem 1.1rem;
+    margin: .5rem 1.15rem 0;
+    border: 1px solid var(--line);
+    border-radius: 1.2rem 1.2rem 0 0;
+    border-bottom: 0;
+    background: oklch(99% 0.005 75 / .9);
+    backdrop-filter: blur(6px);
+  }
+  .tool {
+    display: grid; place-items: center; gap: .25rem;
+    background: none; border: 0; cursor: pointer;
+    font-family: var(--sans); font-size: .68rem; letter-spacing: .04em;
+    color: var(--ink-soft);
+    padding: .35rem .7rem; border-radius: .8rem;
+    transition: background .25s, color .25s;
+  }
+  .tool svg { width: 20px; height: 20px; }
+  .tool.on { background: var(--ink); color: oklch(96% 0.01 75); }
+  .tool:not(.on):hover { background: oklch(92% 0.015 75); color: var(--ink); }
+  .board-cta { padding: .8rem 1.15rem calc(1rem + env(safe-area-inset-bottom)); }
+
+  /* ---------- complete ---------- */
+  .complete-body { flex: 1; overflow-y: auto; padding: 0 1.5rem 2rem; text-align: center; }
+  .result-kicker { font-family: var(--serif-ko); letter-spacing: .26em; text-indent: .26em; font-size: .78rem; color: var(--ink-soft); margin-top: .6rem; }
+  .result-name { font-family: var(--serif-ko); font-weight: 700; font-size: 1.75rem; margin-top: .55rem; line-height: 1.3; }
+  .result-en { font-family: var(--serif-en); font-size: .95rem; letter-spacing: .18em; margin-top: .3rem; color: var(--ink-soft); }
+  .result-desc { font-size: .87rem; color: var(--ink-soft); margin: 1rem auto 0; max-width: 26em; text-wrap: pretty; }
+  .result-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem; margin-top: 1.1rem; }
+  .result-chips .chip {
+    font-size: .8rem; padding: .38rem 1rem;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: oklch(100% 0 0 / .5);
+  }
+  .complete-board-slot { margin: 1.5rem auto 0; max-width: 340px; }
+  .complete-board-slot .board-frame { pointer-events: none; }
+  .complete-actions { display: grid; gap: .55rem; margin-top: 1.6rem; }
+
+  /* ---------- sheet (login gate / text input) ---------- */
+  .sheet-backdrop {
+    position: absolute; inset: 0;
+    background: oklch(20% 0.04 315 / .4);
+    z-index: var(--z-sheet);
+    display: none;
+    align-items: flex-end;
+    animation: fadeIn .3s ease-out;
+  }
+  .sheet-backdrop.open { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .sheet {
+    width: 100%;
+    background: var(--ivory);
+    border-radius: 1.6rem 1.6rem 0 0;
+    padding: 1.6rem 1.5rem calc(1.7rem + env(safe-area-inset-bottom));
+    animation: sheetUp .45s var(--ease-out);
+  }
+  @keyframes sheetUp { from { transform: translateY(40px); opacity: .4; } }
+  .sheet h3 { font-family: var(--serif-ko); font-weight: 700; font-size: 1.2rem; }
+  .sheet p { font-size: .85rem; color: var(--ink-soft); margin-top: .45rem; }
+  .sheet .sheet-actions { display: grid; gap: .5rem; margin-top: 1.3rem; }
+  .sheet input {
+    width: 100%;
+    border: 0; border-bottom: 1.5px solid var(--line);
+    background: transparent;
+    font-family: var(--serif-ko); font-size: 1.2rem; font-weight: 700;
+    padding: .55rem .1rem; margin-top: 1rem;
+    color: var(--ink); border-radius: 0;
+  }
+  .sheet input:focus { outline: none; border-color: var(--ink); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: absolute; left: 50%; bottom: 6.4rem;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--ink); color: oklch(96% 0.01 75);
+    font-size: .82rem;
+    padding: .65rem 1.3rem; border-radius: 999px;
+    z-index: var(--z-toast);
+    opacity: 0; pointer-events: none;
+    transition: opacity .35s var(--ease-out), transform .35s var(--ease-out);
+    max-width: 85%; text-align: center;
+    box-shadow: 0 10px 24px oklch(28% 0.05 315 / .35);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen.active, .sheet, .sheet-backdrop { animation: none; }
+    .login-oval .star, .gen-stage .sparkle { animation: none; }
+    .progress-fill, .gen-bar i { transition: none; }
+    .gen-stage .gt.show { transition: opacity .2s; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<div class="phone" id="phone">
+
+  <!-- ============ 1. LOGIN ============ -->
+  <section class="screen active" id="screen-login" aria-label="로그인">
+    <div class="login-hero">
+      <div class="login-oval">
+        <svg class="oval" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <ellipse cx="50" cy="50" rx="49" ry="45" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg>
+        <h1 class="login-title">MOOD ME</h1>
+      </div>
+      <p class="login-sub">나를 무드로 표현하다</p>
+    </div>
+
+    <p class="login-copy">질문 몇 개로 완성하는 나만의 추구생보드.<br />오늘의 무드를 남겨보세요.</p>
+
+    <div class="login-actions">
+      <button class="btn btn-kakao" id="btn-kakao">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.8 5 4.6 6.4l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.5 0 .9.1 1.4.1 5.5 0 10-3.4 10-7.7S17.5 3 12 3z"/></svg>
+        카카오로 3초 만에 시작
+      </button>
+      <button class="btn btn-ghost" id="btn-skip-login">나중에 할게요</button>
+    </div>
+  </section>
+
+  <!-- ============ 2. MAIN ============ -->
+  <section class="screen" id="screen-main" aria-label="메인">
+    <div class="topbar">
+      <span class="mark">MOOD ME</span>
+    </div>
+    <div class="scrollable main-body">
+      <h2 class="main-kicker">Your mood,<br />on one board.</h2>
+      <p class="main-lede">몇 가지 질문에 답하면 <strong>AI가 키워드·컬러·이미지를 조합</strong>해 나만의 추구생보드를 만들어줘요. 핀터레스트에서 헤매던 세 시간이 3분이 됩니다.</p>
+
+      <div class="example-board" aria-label="완성 예시 보드">
+        <div class="mini-collage" id="example-collage" aria-hidden="true"></div>
+        <div class="caption"><span>EXAMPLE</span><span>어느 새벽의 무드</span></div>
+      </div>
+
+      <div class="main-modes">
+        <div class="mode-card">
+          <span class="num">①</span>
+          <div>
+            <h3>내가 만드는 나</h3>
+            <p>질문 → 선택 → 분석 → 보드 완성</p>
+          </div>
+        </div>
+        <div class="mode-card">
+          <span class="num">②</span>
+          <div>
+            <h3>친구가 만들어주는 나</h3>
+            <p>친구들의 시선을 모아 만드는 보드</p>
+          </div>
+          <span class="soon">곧 만나요</span>
+        </div>
+      </div>
+    </div>
+    <div class="cta-dock">
+      <button class="btn btn-ink" id="btn-start-test">무드보드 만들기</button>
+    </div>
+  </section>
+
+  <!-- ============ 3. TEST ============ -->
+  <section class="screen" id="screen-test" aria-label="취향 테스트">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-test-back" aria-label="뒤로가기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="progress-wrap">
+        <div class="progress-meta"><span id="q-progress-label">Q1</span><span class="en" id="q-progress-count">1 / 6</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+    </div>
+    <div class="mood-dots" id="mood-dots" aria-label="지금까지 모인 무드"></div>
+    <div class="test-body">
+      <p class="q-num en" id="q-num">Question 01</p>
+      <h2 class="q-title" id="q-title"></h2>
+      <p class="q-sub" id="q-sub"></p>
+      <div class="options" id="q-options"></div>
+      <div class="test-spacer"></div>
+    </div>
+  </section>
+
+  <!-- ============ 4. GENERATING ============ -->
+  <section class="screen" id="screen-generating" aria-label="무드보드 생성 중">
+    <div>
+      <div class="gen-stage" id="gen-stage">
+        <svg class="sparkle" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg>
+      </div>
+      <p class="gen-text" id="gen-text">취향을 읽는 중...</p>
+      <p class="gen-sub">답변이 하나의 무드로 모이고 있어요</p>
+      <div class="gen-bar"><i id="gen-bar-fill"></i></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. BOARD (EDIT) ============ -->
+  <section class="screen" id="screen-board" aria-label="무드보드 편집">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-board-back" aria-label="처음으로">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span class="mark" style="margin-right:auto">MY BOARD</span>
+      <button class="icon-btn" id="btn-export" aria-label="이미지 내보내기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-share" aria-label="공유 링크 복사">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"/><circle cx="17" cy="5.5" r="2.5"/><circle cx="17" cy="18.5" r="2.5"/><path d="M8.2 10.8l6.6-4M8.2 13.2l6.6 4"/></svg>
+      </button>
+    </div>
+
+    <div class="board-area">
+      <div class="board-frame" id="board-frame">
+        <div class="board-head">
+          <span class="bt">MOOD BOARD</span>
+          <span class="bd" id="board-date"></span>
+        </div>
+        <div class="collage" id="board-collage"></div>
+        <canvas class="board-canvas" id="board-canvas"></canvas>
+        <!-- stickers & labels appended here -->
+      </div>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="꾸미기 도구">
+      <button class="tool" data-tool="pen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4L8 20l-5 1 1-5L17 3z"/></svg>
+        펜
+      </button>
+      <button class="tool" data-tool="sticker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 7h7l-5.5 4.5L17.5 21 12 16.5 6.5 21l2-7.5L3 9h7l2-7z"/></svg>
+        스티커
+      </button>
+      <button class="tool" data-tool="text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6V4h16v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>
+        글자
+      </button>
+      <button class="tool" data-tool="move">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><path d="M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg>
+        이동
+      </button>
+    </div>
+    <div class="board-cta">
+      <button class="btn btn-ink" id="btn-finish">완성하기</button>
+    </div>
+  </section>
+
+  <!-- ============ 6. COMPLETE ============ -->
+  <section class="screen" id="screen-complete" aria-label="무드보드 완성">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-complete-back" aria-label="편집으로 돌아가기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <span class="mark" style="margin-right:auto">COMPLETE</span>
+    </div>
+    <div class="complete-body">
+      <p class="result-kicker">당신의 무드는</p>
+      <h2 class="result-name" id="result-name"></h2>
+      <p class="result-en en" id="result-en"></p>
+      <p class="result-desc" id="result-desc"></p>
+      <div class="result-chips" id="result-chips"></div>
+
+      <div class="complete-board-slot" id="complete-board-slot"></div>
+
+      <div class="complete-actions">
+        <button class="btn btn-ink" id="btn-share2">친구에게 공유하기</button>
+        <button class="btn btn-ghost" id="btn-restart">새로운 무드로 다시 만들기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ login gate sheet ============ -->
+  <div class="sheet-backdrop" id="gate-backdrop">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="로그인 안내">
+      <h3>보드를 간직하려면 로그인이 필요해요</h3>
+      <p>로그인하면 무드보드가 저장되고, 언제든 다시 볼 수 있어요.</p>
+      <div class="sheet-actions">
+        <button class="btn btn-kakao" id="gate-kakao">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.7 1.8 5 4.6 6.4l-1 3.7c-.1.3.3.6.6.4l4.4-2.9c.5 0 .9.1 1.4.1 5.5 0 10-3.4 10-7.7S17.5 3 12 3z"/></svg>
+          카카오로 로그인하고 저장
+        </button>
+        <button class="btn btn-ghost" id="gate-skip">저장 없이 볼게요</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ text label sheet ============ -->
+  <div class="sheet-backdrop" id="text-backdrop">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="글자 추가">
+      <h3>보드에 얹을 한마디</h3>
+      <input id="label-input" type="text" maxlength="12" placeholder="예: 오늘도 무드있게" />
+      <div class="sheet-actions">
+        <button class="btn btn-ink" id="label-add">추가하기</button>
+        <button class="btn btn-ghost" id="label-cancel">취소</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<p class="frame-note">MOOD ME · INTERACTIVE PROTOTYPE</p>
+
+<script>
+/* =========================================================
+   MOOD ME — interactive prototype
+   flow: login → main → test(6Q) → generating → board(edit) → complete
+   ========================================================= */
+const $ = (sel) => document.querySelector(sel);
+const state = {
+  loggedIn: false,
+  qIndex: 0,
+  answers: [],        // {label, grad, energy, warmth}
+  customWord: '',
+  mood: null,
+  toolMode: null,     // pen | sticker | text | move
+  saved: false,
+};
+
+/* ---------- palette helpers ---------- */
+const G = {
+  lavender: 'linear-gradient(150deg, oklch(88% 0.05 300), oklch(74% 0.1 280))',
+  dawn:     'linear-gradient(160deg, oklch(84% 0.06 300), oklch(78% 0.09 265) 55%, oklch(88% 0.05 350))',
+  peach:    'linear-gradient(150deg, oklch(92% 0.06 80), oklch(84% 0.1 45))',
+  sunset:   'linear-gradient(160deg, oklch(88% 0.09 55), oklch(80% 0.12 25))',
+  butter:   'linear-gradient(150deg, oklch(94% 0.07 95), oklch(87% 0.09 70))',
+  rose:     'linear-gradient(160deg, oklch(90% 0.05 20), oklch(82% 0.1 10))',
+  peri:     'linear-gradient(155deg, oklch(80% 0.09 270), oklch(70% 0.12 285))',
+  sky:      'linear-gradient(150deg, oklch(90% 0.04 240), oklch(80% 0.08 260))',
+  cream:    'linear-gradient(150deg, oklch(96% 0.02 85), oklch(90% 0.05 65))',
+  mauve:    'linear-gradient(155deg, oklch(86% 0.05 330), oklch(76% 0.08 320))',
+};
+
+/* ---------- questions ---------- */
+const QUESTIONS = [
+  {
+    title: '지금, 가장 끌리는 색감은?',
+    sub: '생각하지 말고 손이 가는 대로.',
+    type: 'tiles',
+    options: [
+      { label: '새벽의 라벤더', grad: G.dawn,   energy: -1, warmth: -1 },
+      { label: '노을의 피치',   grad: G.sunset, energy: 1,  warmth: 1 },
+      { label: '깊은 페리윙클', grad: G.peri,   energy: 1,  warmth: -1 },
+      { label: '버터 크림',     grad: G.butter, energy: -1, warmth: 1 },
+    ],
+  },
+  {
+    title: '완벽한 주말, 나는 어디에 있나요?',
+    type: 'tiles',
+    options: [
+      { label: '창가 자리 카페', sub: '책 한 권과 함께',   grad: G.cream, energy: -1, warmth: 1 },
+      { label: '친구네 집 파티', sub: '왁자지껄한 저녁',   grad: G.rose,  energy: 1,  warmth: 1 },
+      { label: '새벽 바다 산책', sub: '아무도 없는 해변',  grad: G.sky,   energy: -1, warmth: -1 },
+      { label: '도심 옥상 야경', sub: '반짝이는 불빛들',   grad: G.peri,  energy: 1,  warmth: -1 },
+    ],
+  },
+  {
+    title: '내 대화의 온도는?',
+    type: 'chips',
+    options: [
+      { label: '차분하고 깊게, 오래',          energy: -1, warmth: -1 },
+      { label: '유쾌하고 가볍게, 티키타카',    energy: 1,  warmth: 1 },
+      { label: '다정하고 세심하게, 조곤조곤',  energy: -1, warmth: 1 },
+      { label: '솔직하고 시원하게, 돌직구',    energy: 1,  warmth: -1 },
+    ],
+  },
+  {
+    title: '지금 이어폰에서 흐르면 좋을 무드는?',
+    type: 'tiles',
+    options: [
+      { label: 'lo-fi 새벽 감성', grad: G.mauve,    energy: -1, warmth: -1 },
+      { label: '시티팝 드라이브', grad: G.peri,     energy: 1,  warmth: -1 },
+      { label: '어쿠스틱 오후',   grad: G.butter,   energy: -1, warmth: 1 },
+      { label: '하이텐션 플리',   grad: G.sunset,   energy: 1,  warmth: 1 },
+    ],
+  },
+  {
+    title: '사람들 속의 나는 어떤 모습인가요?',
+    type: 'chips',
+    options: [
+      { label: '분위기를 만드는 사람',        energy: 1,  warmth: 1 },
+      { label: '조용히 곁을 지키는 사람',     energy: -1, warmth: 1 },
+      { label: '관찰하고 기록하는 사람',      energy: -1, warmth: -1 },
+      { label: '새로운 판을 벌이는 사람',     energy: 1,  warmth: -1 },
+    ],
+  },
+  {
+    title: '마지막으로, 요즘의 나를 한 단어로 남겨볼까요?',
+    sub: '보드 위에 그대로 올라가요. 건너뛰어도 좋아요.',
+    type: 'text',
+  },
+];
+
+/* ---------- mood results ---------- */
+const MOODS = {
+  'calm-cool': {
+    name: '새벽의 라벤더',
+    en: 'DAWN LAVENDER',
+    desc: '고요한 시간에 가장 선명해지는 사람. 혼자만의 리듬 속에서 감정을 천천히 고르고, 그 깊이가 곧 당신의 분위기가 됩니다.',
+    keywords: ['차분한', '감성적인', '나만의 시간'],
+    tiles: [G.dawn, G.lavender, G.peri, G.mauve, G.sky],
+  },
+  'calm-warm': {
+    name: '오후의 버터라떼',
+    en: 'BUTTER AFTERNOON',
+    desc: '햇살 좋은 오후처럼 곁에 있으면 마음이 풀어지는 사람. 잔잔하지만 확실한 온기로 주변을 채웁니다.',
+    keywords: ['포근한', '다정한', '잔잔한'],
+    tiles: [G.butter, G.cream, G.peach, G.rose, G.mauve],
+  },
+  'bright-warm': {
+    name: '노을의 텐션',
+    en: 'SUNSET TENSION',
+    desc: '함께 있는 순간을 가장 빛나게 만드는 사람. 웃음의 온도가 높고, 그 에너지가 자연스럽게 사람을 모읍니다.',
+    keywords: ['밝은', '텐션 있는', '사람 좋아하는'],
+    tiles: [G.sunset, G.peach, G.rose, G.butter, G.cream],
+  },
+  'bright-cool': {
+    name: '시티팝 미드나잇',
+    en: 'CITYPOP MIDNIGHT',
+    desc: '반짝이는 것을 향해 먼저 움직이는 사람. 감각적인 취향과 시원한 추진력이 당신만의 리듬을 만듭니다.',
+    keywords: ['자유로운', '감각적인', '새로움을 찾는'],
+    tiles: [G.peri, G.sky, G.dawn, G.mauve, G.lavender],
+  },
+};
+
+/* ---------- navigation ---------- */
+function show(id) {
+  document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- example collage on main ---------- */
+(function buildExample() {
+  const c = $('#example-collage');
+  const cells = [
+    { cls: 't big', bg: G.dawn },
+    { cls: 't word en', text: 'MOOD' },
+    { cls: 't', bg: G.rose },
+    { cls: 't', bg: G.butter },
+    { cls: 't word', text: '차분한' },
+    { cls: 't wide', bg: G.peri },
+    { cls: 't', bg: G.mauve },
+    { cls: 't word', text: '새벽 산책' },
+  ];
+  for (const cell of cells) {
+    const d = document.createElement('div');
+    d.className = cell.cls;
+    if (cell.bg) d.style.background = cell.bg;
+    if (cell.text) d.textContent = cell.text;
+    c.appendChild(d);
+  }
+})();
+
+/* ---------- login ---------- */
+$('#btn-kakao').addEventListener('click', () => {
+  state.loggedIn = true;
+  toast('카카오 로그인 완료 (프로토타입)');
+  show('#screen-main');
+});
+$('#btn-skip-login').addEventListener('click', () => show('#screen-main'));
+
+/* ---------- test flow ---------- */
+$('#btn-start-test').addEventListener('click', () => {
+  state.qIndex = 0;
+  state.answers = [];
+  state.customWord = '';
+  renderQuestion();
+  show('#screen-test');
+});
+
+$('#btn-test-back').addEventListener('click', () => {
+  if (state.qIndex === 0) { show('#screen-main'); return; }
+  state.qIndex -= 1;
+  state.answers.pop();
+  renderQuestion();
+});
+
+function renderQuestion() {
+  const i = state.qIndex;
+  const q = QUESTIONS[i];
+  $('#q-num').textContent = 'Question ' + String(i + 1).padStart(2, '0');
+  $('#q-progress-label').textContent = 'Q' + (i + 1);
+  $('#q-progress-count').textContent = (i + 1) + ' / ' + QUESTIONS.length;
+  $('#progress-fill').style.width = ((i) / QUESTIONS.length) * 100 + '%';
+  $('#q-title').textContent = q.title;
+  $('#q-sub').textContent = q.sub || '';
+
+  renderMoodDots();
+
+  const box = $('#q-options');
+  box.innerHTML = '';
+  box.className = 'options ' + (q.type === 'tiles' ? 'tiles' : q.type === 'chips' ? 'chips' : '');
+
+  if (q.type === 'text') {
+    const wrap = document.createElement('div');
+    wrap.className = 'free-input';
+    wrap.innerHTML = `
+      <input id="custom-word" type="text" maxlength="8" placeholder="예: 유연함" autocomplete="off" />
+      <button class="btn btn-ink" id="btn-word-done">이 단어로 완성하기</button>
+      <button class="btn btn-ghost" id="btn-word-skip">건너뛰고 완성하기</button>`;
+    box.appendChild(wrap);
+    $('#btn-word-done').addEventListener('click', () => {
+      state.customWord = $('#custom-word').value.trim();
+      finishTest();
+    });
+    $('#btn-word-skip').addEventListener('click', finishTest);
+    return;
+  }
+
+  q.options.forEach((opt) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.type = 'button';
+    if (q.type === 'tiles') {
+      b.innerHTML = `<div class="swatch" style="background:${opt.grad}"></div>
+        <span class="opt-label">${opt.label}${opt.sub ? `<small>${opt.sub}</small>` : ''}</span>`;
+    } else {
+      b.innerHTML = `<span class="opt-label">${opt.label}</span>`;
+    }
+    b.addEventListener('click', () => {
+      state.answers.push(opt);
+      if (state.qIndex < QUESTIONS.length - 1) {
+        state.qIndex += 1;
+        renderQuestion();
+      } else {
+        finishTest();
+      }
+    });
+    box.appendChild(b);
+  });
+}
+
+function renderMoodDots() {
+  const wrap = $('#mood-dots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < QUESTIONS.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    const a = state.answers[i];
+    if (a) {
+      d.classList.add('filled');
+      d.style.background = a.grad || 'linear-gradient(150deg, oklch(90% 0.03 300), oklch(82% 0.05 320))';
+    }
+    wrap.appendChild(d);
+  }
+}
+
+function computeMood() {
+  let e = 0, w = 0;
+  for (const a of state.answers) { e += a.energy || 0; w += a.warmth || 0; }
+  const key = (e >= 0 ? 'bright' : 'calm') + '-' + (w >= 0 ? 'warm' : 'cool');
+  return MOODS[key];
+}
+
+/* ---------- generating ---------- */
+const GEN_STEPS = ['취향을 읽는 중...', '컬러를 조합하는 중...', '무드를 배치하는 중...', '반짝임을 더하는 중 ✦'];
+function finishTest() {
+  state.mood = computeMood();
+  show('#screen-generating');
+  runGenerating();
+}
+
+function runGenerating() {
+  const stage = $('#gen-stage');
+  stage.querySelectorAll('.gt').forEach((el) => el.remove());
+  const tiles = state.mood.tiles;
+  const spots = [
+    { x: 8,  y: 10, s: 84,  r: -6 },
+    { x: 112, y: 0,  s: 92,  r: 4 },
+    { x: 0,  y: 108, s: 96,  r: 3 },
+    { x: 118, y: 104, s: 86, r: -4 },
+    { x: 62, y: 58, s: 88, r: 8 },
+  ];
+  const els = spots.map((p, idx) => {
+    const d = document.createElement('div');
+    d.className = 'gt';
+    d.style.cssText = `left:${p.x}px; top:${p.y}px; width:${p.s}px; height:${p.s}px; --r:${p.r}deg; background:${tiles[idx % tiles.length]}`;
+    stage.appendChild(d);
+    return d;
+  });
+
+  const bar = $('#gen-bar-fill');
+  bar.style.width = '0%';
+  const text = $('#gen-text');
+  let step = 0;
+  text.textContent = GEN_STEPS[0];
+
+  const iv = setInterval(() => {
+    if (step < els.length) els[step].classList.add('show');
+    if (step < GEN_STEPS.length) text.textContent = GEN_STEPS[Math.min(step, GEN_STEPS.length - 1)];
+    bar.style.width = Math.min(100, ((step + 1) / 5) * 100) + '%';
+    step += 1;
+    if (step > 5) {
+      clearInterval(iv);
+      buildBoard();
+      show('#screen-board');
+    }
+  }, 850);
+}
+
+/* ---------- board build ---------- */
+function buildBoard() {
+  const m = state.mood;
+  const c = $('#board-collage');
+  c.innerHTML = '';
+  $('#board-date').textContent = new Date().toISOString().slice(0, 10).replaceAll('-', '. ');
+
+  const cells = [
+    { cls: 't big', bg: m.tiles[0] },
+    { cls: 't word title-tile', html: `${m.name}<span class="tiny">MY MOOD</span>`, span: 'wide' },
+    { cls: 't', bg: m.tiles[1] },
+    { cls: 't', bg: m.tiles[2] },
+    { cls: 't word', text: m.keywords[0] },
+    { cls: 't tall', bg: m.tiles[3], spark: true },
+    { cls: 't word', text: m.keywords[1] },
+    { cls: 't', bg: m.tiles[4] },
+    { cls: 't wide word en', text: m.en },
+    { cls: 't', bg: m.tiles[1] },
+    { cls: 't word', text: state.customWord || m.keywords[2] },
+    { cls: 't', bg: m.tiles[0] },
+  ];
+
+  for (const cell of cells) {
+    const d = document.createElement('div');
+    d.className = cell.cls + (cell.span ? ' ' + cell.span : '');
+    if (cell.bg) d.style.background = cell.bg;
+    if (cell.text) d.textContent = cell.text;
+    if (cell.html) d.innerHTML = cell.html;
+    if (cell.spark) d.innerHTML = '<svg class="spark-svg" viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="currentColor"/></svg>';
+    c.appendChild(d);
+  }
+
+  // reset decorations & canvas
+  document.querySelectorAll('#board-frame .decor').forEach((el) => el.remove());
+  setupCanvas();
+  setTool(null);
+  state.saved = false;
+}
+
+/* ---------- canvas pen ---------- */
+let ctx, drawing = false;
+function setupCanvas() {
+  const frame = $('#board-frame');
+  const canvas = $('#board-canvas');
+  requestAnimationFrame(() => {
+    const r = frame.getBoundingClientRect();
+    canvas.width = r.width * devicePixelRatio;
+    canvas.height = r.height * devicePixelRatio;
+    ctx = canvas.getContext('2d');
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'oklch(30% 0.05 315)';
+    ctx.lineWidth = 2.5;
+  });
+}
+const canvasEl = $('#board-canvas');
+canvasEl.addEventListener('pointerdown', (e) => {
+  if (state.toolMode !== 'pen') return;
+  drawing = true;
+  canvasEl.setPointerCapture(e.pointerId);
+  const r = canvasEl.getBoundingClientRect();
+  ctx.beginPath();
+  ctx.moveTo(e.clientX - r.left, e.clientY - r.top);
+});
+canvasEl.addEventListener('pointermove', (e) => {
+  if (!drawing) return;
+  const r = canvasEl.getBoundingClientRect();
+  ctx.lineTo(e.clientX - r.left, e.clientY - r.top);
+  ctx.stroke();
+});
+canvasEl.addEventListener('pointerup', () => { drawing = false; });
+
+/* ---------- stickers & labels ---------- */
+const STICKERS = [
+  '<svg viewBox="0 0 40 40"><path d="M20 0 L23 17 L40 20 L23 23 L20 40 L17 23 L0 20 L17 17 Z" fill="oklch(75% 0.11 280)"/></svg>',
+  '<svg viewBox="0 0 40 40"><path d="M20 36C10 28 2 21 2 13 2 7 7 3 12 3c3 0 6 1.6 8 4.4C22 4.6 25 3 28 3c5 0 10 4 10 10 0 8-8 15-18 23z" fill="oklch(80% 0.11 15)"/></svg>',
+  '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="oklch(70% 0.1 60)" stroke-width="2.5"/><circle cx="20" cy="20" r="6" fill="oklch(85% 0.1 60)"/></svg>',
+  '<svg viewBox="0 0 40 40"><path d="M6 24 Q20 4 34 24" fill="none" stroke="oklch(70% 0.09 300)" stroke-width="2.5" stroke-linecap="round"/><path d="M6 32 Q20 12 34 32" fill="none" stroke="oklch(80% 0.1 40)" stroke-width="2.5" stroke-linecap="round"/></svg>',
+];
+let stickerIdx = 0;
+
+function addSticker() {
+  const frame = $('#board-frame');
+  const d = document.createElement('div');
+  d.className = 'decor sticker';
+  d.innerHTML = STICKERS[stickerIdx % STICKERS.length];
+  stickerIdx += 1;
+  const fw = frame.clientWidth, fh = frame.clientHeight;
+  positionDecor(d, fw * (0.2 + 0.5 * ((stickerIdx * 37) % 10) / 10), fh * (0.2 + 0.5 * ((stickerIdx * 53) % 10) / 10));
+  makeDraggable(d);
+  frame.appendChild(d);
+  toast('스티커를 끌어서 옮길 수 있어요');
+}
+
+function addLabel(text) {
+  const frame = $('#board-frame');
+  const d = document.createElement('div');
+  d.className = 'decor label';
+  d.textContent = text;
+  positionDecor(d, frame.clientWidth * 0.18, frame.clientHeight * 0.42);
+  makeDraggable(d);
+  frame.appendChild(d);
+}
+
+function positionDecor(el, x, y) {
+  el.dataset.x = x; el.dataset.y = y;
+  el.style.transform = `translate(${x}px, ${y}px)`;
+}
+
+function makeDraggable(el) {
+  let sx, sy, ox, oy, dragging = false;
+  el.addEventListener('pointerdown', (e) => {
+    if (state.toolMode === 'pen') return;
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    sx = e.clientX; sy = e.clientY;
+    ox = parseFloat(el.dataset.x); oy = parseFloat(el.dataset.y);
+    e.preventDefault();
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const frame = $('#board-frame');
+    const nx = Math.max(0, Math.min(frame.clientWidth - el.offsetWidth, ox + e.clientX - sx));
+    const ny = Math.max(0, Math.min(frame.clientHeight - el.offsetHeight, oy + e.clientY - sy));
+    positionDecor(el, nx, ny);
+  });
+  el.addEventListener('pointerup', () => { dragging = false; });
+}
+
+/* ---------- toolbar ---------- */
+function setTool(mode) {
+  state.toolMode = mode;
+  $('#board-frame').classList.toggle('pen-mode', mode === 'pen');
+  document.querySelectorAll('.tool').forEach((t) => t.classList.toggle('on', t.dataset.tool === mode));
+}
+document.querySelectorAll('.tool').forEach((t) => {
+  t.addEventListener('click', () => {
+    const tool = t.dataset.tool;
+    if (tool === 'sticker') { setTool('move'); addSticker(); return; }
+    if (tool === 'text') { setTool('move'); $('#text-backdrop').classList.add('open'); setTimeout(() => $('#label-input').focus(), 80); return; }
+    setTool(state.toolMode === tool ? null : tool);
+  });
+});
+$('#label-add').addEventListener('click', () => {
+  const v = $('#label-input').value.trim();
+  if (v) addLabel(v);
+  $('#label-input').value = '';
+  $('#text-backdrop').classList.remove('open');
+});
+$('#label-cancel').addEventListener('click', () => {
+  $('#label-input').value = '';
+  $('#text-backdrop').classList.remove('open');
+});
+
+/* ---------- board top actions ---------- */
+$('#btn-board-back').addEventListener('click', () => show('#screen-main'));
+$('#btn-export').addEventListener('click', () => {
+  if (!state.loggedIn) { openGate('export'); return; }
+  toast('이미지로 저장했어요 (프로토타입)');
+});
+$('#btn-share').addEventListener('click', shareLink);
+function shareLink() {
+  const url = 'https://mood.me/b/' + Math.random().toString(36).slice(2, 8);
+  if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => {});
+  toast('공유 링크를 복사했어요 · ' + url.replace('https://', ''));
+}
+
+/* ---------- finish & gating ---------- */
+let gateReason = 'finish';
+function openGate(reason) {
+  gateReason = reason;
+  $('#gate-backdrop').classList.add('open');
+}
+$('#btn-finish').addEventListener('click', () => {
+  if (!state.loggedIn) { openGate('finish'); return; }
+  state.saved = true;
+  goComplete(true);
+});
+$('#gate-kakao').addEventListener('click', () => {
+  state.loggedIn = true;
+  $('#gate-backdrop').classList.remove('open');
+  if (gateReason === 'export') { toast('로그인 완료! 이미지로 저장했어요'); return; }
+  state.saved = true;
+  goComplete(true);
+});
+$('#gate-skip').addEventListener('click', () => {
+  $('#gate-backdrop').classList.remove('open');
+  if (gateReason === 'export') { toast('로그인하면 이미지를 저장할 수 있어요'); return; }
+  state.saved = false;
+  goComplete(false);
+});
+
+/* ---------- complete ---------- */
+function goComplete(saved) {
+  const m = state.mood;
+  $('#result-name').textContent = m.name;
+  $('#result-en').textContent = m.en;
+  $('#result-desc').textContent = m.desc;
+  const chips = $('#result-chips');
+  chips.innerHTML = '';
+  const words = [...m.keywords];
+  if (state.customWord) words.push('#' + state.customWord);
+  for (const k of words) {
+    const s = document.createElement('span');
+    s.className = 'chip';
+    s.textContent = k;
+    chips.appendChild(s);
+  }
+  // move the edited board into the complete screen
+  $('#complete-board-slot').appendChild($('#board-frame'));
+  setTool(null);
+  show('#screen-complete');
+  setTimeout(() => toast(saved ? '무드보드가 저장되었어요' : '저장 없이 완성했어요 · 로그인하면 간직할 수 있어요'), 450);
+}
+$('#btn-complete-back').addEventListener('click', () => {
+  $('#screen-board .board-area').appendChild($('#board-frame'));
+  show('#screen-board');
+});
+
+$('#btn-share2').addEventListener('click', shareLink);
+$('#btn-restart').addEventListener('click', () => {
+  const frame = $('#board-frame');
+  if (frame) $('#screen-board .board-area').appendChild(frame);
+  state.qIndex = 0;
+  state.answers = [];
+  state.customWord = '';
+  renderQuestion();
+  show('#screen-test');
+});
+
+/* keep canvas crisp on resize */
+window.addEventListener('resize', () => { if ($('#screen-board').classList.contains('active')) setupCanvas(); });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MOOD ME — 나를 무드로 표현하다</title>
+<meta name="description" content="질문 몇 개로 완성하는 나만의 추구생보드. 내가 보는 나와 친구들이 보는 나를 무드로 비교하는 새로운 소셜 경험, 무드미." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Schoolbell&family=Caveat:wght@500;600;700&family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* 포스터에서 추출한 크림 페이퍼 + 크레용 파스텔 팔레트 */
+    --paper: oklch(96.5% 0.014 85);
+    --paper-deep: oklch(94% 0.02 80);
+    --card: oklch(98.5% 0.008 90);
+    --ink: oklch(33% 0.028 55);           /* 웜 차콜 — 본문 */
+    --ink-soft: oklch(44% 0.026 55);
+
+    --pink: oklch(78% 0.09 10);
+    --pink-deep: oklch(56% 0.14 8);       /* 텍스트용 */
+    --pink-wash: oklch(92% 0.035 10);
+    --blue: oklch(76% 0.07 235);
+    --blue-deep: oklch(50% 0.09 245);
+    --blue-wash: oklch(93% 0.025 235);
+    --butter: oklch(88% 0.09 92);
+    --butter-deep: oklch(56% 0.10 80);
+    --butter-wash: oklch(94.5% 0.045 95);
+    --mint: oklch(80% 0.06 160);
+    --mint-deep: oklch(50% 0.08 165);
+    --mint-wash: oklch(93.5% 0.03 160);
+    --lilac: oklch(78% 0.06 305);
+    --lilac-deep: oklch(52% 0.09 305);
+    --lilac-wash: oklch(93% 0.025 305);
+
+    --hand-en: "Caveat", cursive;
+    --crayon: "Schoolbell", cursive;
+    --hand-ko: "Gaegu", sans-serif;
+    --body: "Gowun Dodum", "Apple SD Gothic Neo", sans-serif;
+    --ease: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--body);
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.75;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: oklch(78% 0.09 10 / .4); }
+  img, svg { max-width: 100%; }
+
+  /* ---------- 종이 질감 ---------- */
+  .grain {
+    position: fixed; inset: 0;
+    pointer-events: none; z-index: 50; opacity: .5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45 0 0 0 0 0.4 0 0 0 0 0.33 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .wrap { max-width: 62rem; margin-inline: auto; padding-inline: clamp(1.25rem, 5vw, 2.5rem); }
+  section { position: relative; }
+  h1, h2, h3 { text-wrap: balance; line-height: 1.25; }
+  p { text-wrap: pretty; }
+
+  /* ---------- 수채 블롭 ---------- */
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(46px); pointer-events: none; z-index: 0;
+  }
+  @keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(14px, -18px) scale(1.06); }
+  }
+  .blob { animation: drift 14s var(--ease) infinite; }
+  .blob:nth-of-type(2) { animation-duration: 18s; animation-delay: -6s; }
+  .blob:nth-of-type(3) { animation-duration: 21s; animation-delay: -11s; }
+
+  /* ---------- 손그림 타이틀 ---------- */
+  .script {
+    font-family: var(--hand-en);
+    font-weight: 600;
+    font-size: clamp(2.6rem, 6.5vw, 4rem);
+    letter-spacing: .01em;
+    line-height: 1.1;
+  }
+  .script .swash { display: inline-block; }
+  .subtitle-ko {
+    font-family: var(--hand-ko);
+    font-weight: 700;
+    font-size: clamp(1.15rem, 2.6vw, 1.45rem);
+    color: var(--ink-soft);
+    letter-spacing: .12em;
+  }
+
+  /* ---------- 헤더 ---------- */
+  header.top {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.3rem clamp(1.25rem, 4vw, 2.5rem);
+    position: relative; z-index: 10;
+  }
+  header.top .mark { font-family: var(--crayon); font-size: 1.3rem; letter-spacing: .1em; color: var(--ink); text-decoration: none; }
+  header.top .mark b:nth-child(1) { color: var(--pink-deep); }
+  header.top .mark b:nth-child(2) { color: var(--butter-deep); }
+  header.top .mark b:nth-child(3) { color: var(--mint-deep); }
+  header.top .mark b:nth-child(4) { color: var(--blue-deep); }
+  header.top .mark b:nth-child(5) { color: var(--lilac-deep); }
+  header.top .mark b:nth-child(6) { color: var(--pink-deep); }
+  header.top nav { display: flex; gap: 1.5rem; font-family: var(--hand-ko); font-size: 1.02rem; }
+  header.top nav a { color: var(--ink-soft); text-decoration: none; border-bottom: 2px solid transparent; transition: color .3s, border-color .3s; }
+  header.top nav a:hover { color: var(--pink-deep); border-color: var(--pink); }
+  @media (max-width: 640px) { header.top nav { display: none; } }
+
+  /* ---------- 히어로 ---------- */
+  .hero {
+    text-align: center;
+    padding: clamp(3rem, 9vh, 6rem) 0 clamp(4rem, 10vh, 6.5rem);
+    overflow: hidden;
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero-title {
+    font-family: var(--crayon);
+    font-size: clamp(3.4rem, 12vw, 6rem);
+    font-weight: 400;
+    letter-spacing: .04em;
+    line-height: 1.05;
+  }
+  .hero-title span { display: inline-block; }
+  .hero-title .l1 { color: var(--pink-deep);   transform: rotate(-4deg); }
+  .hero-title .l2 { color: var(--butter-deep); transform: rotate(3deg) translateY(4px); }
+  .hero-title .l3 { color: var(--mint-deep);   transform: rotate(-2deg); }
+  .hero-title .l4 { color: var(--blue-deep);   transform: rotate(4deg) translateY(-3px); }
+  .hero-title .l5 { color: var(--lilac-deep);  transform: rotate(-3deg) translateY(3px); }
+  .hero-title .l6 { color: var(--pink-deep);   transform: rotate(2deg); }
+  .hero-sub {
+    margin-top: 1rem;
+    font-family: var(--hand-ko); font-weight: 700;
+    font-size: clamp(1.2rem, 3vw, 1.6rem);
+    letter-spacing: .18em; color: var(--ink);
+  }
+  .hero-pills {
+    margin-top: 2.2rem;
+    display: flex; flex-wrap: wrap; gap: .7rem 1rem; justify-content: center;
+  }
+  .pill {
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.05rem;
+    padding: .45rem 1.25rem;
+    border: 2px solid; border-radius: 999px 999px 999px 999px / 900px 700px 800px 999px;
+    background: var(--card);
+  }
+  .pill.p-pink { color: var(--pink-deep); border-color: var(--pink); transform: rotate(-1.5deg); }
+  .pill.p-blue { color: var(--blue-deep); border-color: var(--blue); transform: rotate(1deg); }
+  .hero-cta {
+    margin-top: 2.6rem;
+    display: inline-block;
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.3rem;
+    color: var(--card); text-decoration: none;
+    background: var(--pink-deep);
+    padding: .8rem 2.2rem;
+    border-radius: 40px 34px 38px 30px / 30px 38px 32px 40px;
+    box-shadow: 0 4px 0 oklch(45% 0.13 8);
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .hero-cta:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: 0 7px 0 oklch(45% 0.13 8); }
+  .hero-doodle { position: absolute; z-index: 0; opacity: .9; }
+  .d-flower { top: 4%; right: 8%; width: clamp(48px, 7vw, 78px); }
+  .d-cat { bottom: 6%; left: 6%; width: clamp(56px, 8vw, 88px); }
+  .d-spark1 { top: 22%; left: 10%; width: clamp(26px, 4vw, 40px); }
+  .d-spark2 { bottom: 24%; right: 12%; width: clamp(20px, 3vw, 32px); }
+  @keyframes bob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-9px) rotate(4deg); } }
+  .hero-doodle { animation: bob 6s ease-in-out infinite; }
+  .d-spark2 { animation-delay: -3s; }
+  .d-cat { animation-delay: -1.5s; }
+
+  /* ---------- 리본 구분선 ---------- */
+  .ribbon { display: block; margin: 0 auto; width: min(420px, 60vw); height: auto; opacity: .85; }
+
+  /* ---------- Why ---------- */
+  .why { padding: clamp(3.5rem, 9vh, 6rem) 0; }
+  .why-card {
+    position: relative; z-index: 1;
+    background: var(--card);
+    border: 2px solid oklch(85% 0.04 10 / .8);
+    border-radius: 34px 40px 30px 44px / 40px 30px 44px 34px;
+    padding: clamp(2rem, 5vw, 3.5rem);
+    max-width: 44rem;
+    box-shadow: 0 10px 32px oklch(60% 0.06 40 / .12);
+    transform: rotate(-.4deg);
+  }
+  .why-quote {
+    font-family: var(--hand-ko); font-weight: 700;
+    font-size: clamp(1.4rem, 3.4vw, 1.9rem);
+    line-height: 1.5; color: var(--ink);
+    margin: 1.2rem 0 1.6rem;
+  }
+  .why-quote em { font-style: normal; color: var(--pink-deep); }
+  .why p { max-width: 34rem; color: var(--ink-soft); }
+  .why p + p { margin-top: 1rem; }
+  .why p strong { color: var(--ink); font-weight: 400; background: linear-gradient(transparent 62%, var(--butter-wash) 62%); }
+
+  /* ---------- How to Use ---------- */
+  .how { padding: clamp(3.5rem, 9vh, 6rem) 0; }
+  .how-head { text-align: center; margin-bottom: clamp(2.5rem, 6vh, 4rem); position: relative; z-index: 1; }
+  .how-grid {
+    display: grid; gap: clamp(1.5rem, 3vw, 2.2rem);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    position: relative; z-index: 1;
+  }
+  .how-card {
+    background: var(--card);
+    border-radius: 30px 36px 28px 40px / 38px 28px 40px 30px;
+    padding: clamp(1.8rem, 4vw, 2.6rem);
+    box-shadow: 0 10px 32px oklch(60% 0.06 40 / .1);
+  }
+  .how-card.me { border: 2px solid var(--pink); }
+  .how-card.friends { border: 2px solid var(--blue); }
+  .how-num {
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.35rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .how-card.me .how-num { color: var(--pink-deep); }
+  .how-card.friends .how-num { color: var(--blue-deep); }
+  .how-flow {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .5rem;
+    margin: 1.1rem 0 1.4rem;
+    font-family: var(--hand-ko); font-weight: 700; font-size: .98rem;
+  }
+  .how-flow .step {
+    padding: .2rem .8rem; border-radius: 999px;
+  }
+  .how-card.me .how-flow .step { background: var(--pink-wash); color: var(--pink-deep); }
+  .how-card.friends .how-flow .step { background: var(--blue-wash); color: var(--blue-deep); }
+  .how-flow .arr { color: var(--ink-soft); font-family: var(--body); }
+  .how-card p { color: var(--ink-soft); font-size: .98rem; }
+  .how-card p + p { margin-top: .8rem; }
+  .how-tag {
+    display: inline-block; margin-top: 1.6rem;
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.05rem;
+    color: var(--card); padding: .4rem 1.3rem;
+    border-radius: 30px 26px 30px 22px / 22px 30px 24px 30px;
+  }
+  .how-card.me .how-tag { background: var(--pink-deep); }
+  .how-card.friends .how-tag { background: var(--blue-deep); }
+  .how-doodles { display: flex; gap: .55rem; margin-top: 1.4rem; }
+  .how-doodles span {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 1.15rem;
+  }
+  .how-card.me .how-doodles span { background: var(--pink-wash); }
+  .how-card.friends .how-doodles span { background: var(--blue-wash); }
+
+  /* ---------- The Kick ---------- */
+  .kick { padding: clamp(3.5rem, 9vh, 6.5rem) 0; }
+  .kick-inner {
+    position: relative; z-index: 1;
+    background: linear-gradient(160deg, var(--lilac-wash), var(--pink-wash) 55%, var(--butter-wash));
+    border-radius: 44px 36px 48px 34px / 36px 46px 34px 48px;
+    padding: clamp(2.2rem, 6vw, 4rem);
+    overflow: hidden;
+  }
+  .kick-head { text-align: center; margin-bottom: 2.4rem; }
+  .kick-head .script { color: var(--lilac-deep); }
+  .kick-lede {
+    font-family: var(--hand-ko); font-weight: 700;
+    font-size: clamp(1.15rem, 2.8vw, 1.5rem);
+    margin-top: .4rem; letter-spacing: .06em;
+  }
+  .kick-compare {
+    display: grid; gap: 1.2rem;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    max-width: 46rem; margin-inline: auto;
+  }
+  @media (max-width: 700px) {
+    .kick-compare { grid-template-columns: 1fr; }
+    .kick-vs svg { transform: rotate(90deg); }
+  }
+  .mood-card {
+    background: var(--card);
+    border-radius: 26px 32px 24px 34px / 32px 24px 34px 26px;
+    padding: 1.6rem 1.5rem 1.8rem;
+    text-align: center;
+    box-shadow: 0 8px 26px oklch(60% 0.07 320 / .14);
+  }
+  .mood-card h3 { font-family: var(--hand-ko); font-weight: 700; font-size: 1.2rem; margin-bottom: 1.1rem; }
+  .mood-card.mine h3 { color: var(--blue-deep); }
+  .mood-card.theirs h3 { color: var(--pink-deep); }
+  .mood-chips { display: flex; flex-direction: column; gap: .55rem; align-items: center; }
+  .chip {
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.05rem;
+    padding: .35rem 1.2rem; border-radius: 999px; border: 2px dashed;
+    transition: transform .3s var(--ease);
+  }
+  .chip:hover { transform: rotate(-2deg) scale(1.06); }
+  .mood-card.mine .chip { color: var(--blue-deep); border-color: var(--blue); background: var(--blue-wash); }
+  .mood-card.theirs .chip { color: var(--pink-deep); border-color: var(--pink); background: var(--pink-wash); }
+  .kick-vs { display: grid; place-items: center; }
+  .kick-note {
+    max-width: 34rem; margin: 2.4rem auto 0; text-align: center; color: var(--ink-soft);
+  }
+  .kick-note strong { color: var(--lilac-deep); font-weight: 400; }
+
+  /* ---------- For This Moment ---------- */
+  .moment { padding: clamp(3.5rem, 9vh, 6rem) 0; text-align: center; }
+  .moment .script { color: var(--mint-deep); }
+  .moment-grid {
+    margin-top: 2.6rem;
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: clamp(1rem, 3vw, 2rem);
+    position: relative; z-index: 1;
+  }
+  .moment-item {
+    width: 132px;
+    background: var(--card);
+    border: 2px solid var(--mint);
+    border-radius: 26px 30px 24px 32px / 30px 24px 32px 26px;
+    padding: 1.2rem .8rem 1rem;
+    font-family: var(--hand-ko); font-weight: 700; font-size: 1.02rem;
+    color: var(--mint-deep);
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .moment-item:hover { transform: translateY(-6px) rotate(-2deg); box-shadow: 0 12px 24px oklch(60% 0.07 160 / .2); }
+  .moment-item .emo { display: block; font-size: 2rem; margin-bottom: .45rem; }
+  .moment-item:nth-child(even) { transform: rotate(1.5deg); }
+  .moment-item:nth-child(even):hover { transform: translateY(-6px) rotate(2.5deg); }
+
+  /* ---------- Appeal Point ---------- */
+  .appeal { padding: clamp(3.5rem, 9vh, 6rem) 0 clamp(4rem, 10vh, 7rem); }
+  .appeal .script { color: var(--pink-deep); }
+  .appeal-list {
+    margin-top: 2.4rem;
+    display: grid; gap: 1.1rem;
+    max-width: 40rem;
+    position: relative; z-index: 1;
+    list-style: none;
+  }
+  .appeal-item {
+    display: flex; align-items: center; gap: 1.1rem;
+    background: var(--card);
+    border-radius: 999px 999px 999px 999px / 700px 900px 800px 999px;
+    padding: .9rem 1.6rem .9rem 1rem;
+    box-shadow: 0 6px 20px oklch(60% 0.06 40 / .1);
+  }
+  .appeal-item:nth-child(odd) { transform: rotate(-.5deg); }
+  .appeal-item:nth-child(even) { transform: rotate(.6deg) translateX(clamp(0px, 3vw, 28px)); }
+  .appeal-num {
+    flex: none; width: 46px; height: 46px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: var(--crayon); font-size: 1.15rem; color: var(--card);
+  }
+  .appeal-item:nth-child(1) .appeal-num { background: var(--butter-deep); }
+  .appeal-item:nth-child(2) .appeal-num { background: var(--pink-deep); }
+  .appeal-item:nth-child(3) .appeal-num { background: var(--mint-deep); }
+  .appeal-item:nth-child(4) .appeal-num { background: var(--blue-deep); }
+  .appeal-item p { font-family: var(--hand-ko); font-weight: 700; font-size: 1.1rem; line-height: 1.45; }
+
+  /* ---------- 푸터 ---------- */
+  footer.outro {
+    text-align: center;
+    padding: clamp(3.5rem, 10vh, 6rem) 0 clamp(2.5rem, 6vh, 4rem);
+    background: linear-gradient(180deg, transparent, var(--pink-wash));
+  }
+  .outro-label { font-family: var(--hand-ko); font-weight: 700; color: var(--ink-soft); letter-spacing: .2em; font-size: 1rem; }
+  .outro-title {
+    font-family: var(--crayon);
+    font-size: clamp(2.4rem, 8vw, 4.2rem);
+    letter-spacing: .06em; margin-top: .6rem;
+  }
+  .outro-title span { display: inline-block; }
+  .outro-quote {
+    font-family: var(--hand-ko); font-weight: 700;
+    font-size: clamp(1.15rem, 3vw, 1.5rem);
+    margin-top: .8rem;
+  }
+  .outro-line { margin-top: 2rem; color: var(--ink-soft); font-size: 1.02rem; }
+  .outro-line strong { color: var(--pink-deep); font-weight: 400; }
+  .outro-foot { margin-top: 3rem; font-size: .85rem; color: var(--ink-soft); opacity: .8; }
+
+  /* ---------- 리빌 ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .js .reveal {
+      opacity: 0; transform: translateY(26px) rotate(.3deg);
+      transition: opacity .9s var(--ease), transform .9s var(--ease);
+    }
+    .js .reveal.in { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .blob, .hero-doodle { animation: none !important; }
+    * { transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="mark" href="#" aria-label="MOOD ME 홈">
+    <b>M</b><b>O</b><b>O</b><b>D</b>&nbsp;<b>M</b><b>E</b>
+  </a>
+  <nav aria-label="섹션 이동">
+    <a href="#why">왜 무드미?</a>
+    <a href="#how">사용법</a>
+    <a href="#kick">더 킥!</a>
+    <a href="#moment">이런 순간에</a>
+  </nav>
+</header>
+
+<!-- ═══════════ 히어로 ═══════════ -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="blob" style="width:340px;height:300px;top:-6%;left:-8%;background:oklch(88% 0.06 10 / .55);"></div>
+  <div class="blob" style="width:300px;height:280px;top:10%;right:-6%;background:oklch(88% 0.05 235 / .5);"></div>
+  <div class="blob" style="width:260px;height:240px;bottom:-10%;left:34%;background:oklch(92% 0.07 95 / .6);"></div>
+
+  <svg class="hero-doodle d-flower" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+    <g stroke-linecap="round">
+      <circle cx="40" cy="30" r="7" fill="oklch(88% 0.09 92)"/>
+      <ellipse cx="40" cy="15" rx="7" ry="9" fill="oklch(85% 0.08 10)"/>
+      <ellipse cx="54" cy="26" rx="9" ry="7" fill="oklch(85% 0.08 10)" transform="rotate(30 54 26)"/>
+      <ellipse cx="49" cy="42" rx="7" ry="9" fill="oklch(85% 0.08 10)" transform="rotate(60 49 42)"/>
+      <ellipse cx="31" cy="42" rx="7" ry="9" fill="oklch(85% 0.08 10)" transform="rotate(-60 31 42)"/>
+      <ellipse cx="26" cy="26" rx="9" ry="7" fill="oklch(85% 0.08 10)" transform="rotate(-30 26 26)"/>
+      <path d="M40 46 C 38 58, 42 64, 39 74" stroke="oklch(60% 0.09 150)" stroke-width="3"/>
+      <path d="M40 58 C 47 55, 51 56, 55 51" stroke="oklch(60% 0.09 150)" stroke-width="3"/>
+    </g>
+  </svg>
+
+  <svg class="hero-doodle d-cat" viewBox="0 0 90 70" fill="none" aria-hidden="true">
+    <g stroke="oklch(50% 0.03 55)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 34 C 16 20, 22 12, 28 20 L 31 25" fill="oklch(97% 0.01 90)"/>
+      <path d="M52 32 C 56 18, 50 11, 44 19 L 41 24" fill="oklch(97% 0.01 90)"/>
+      <ellipse cx="36" cy="42" rx="22" ry="19" fill="oklch(97% 0.01 90)"/>
+      <circle cx="29" cy="40" r="1.8" fill="oklch(35% 0.03 55)" stroke="none"/>
+      <circle cx="43" cy="40" r="1.8" fill="oklch(35% 0.03 55)" stroke="none"/>
+      <path d="M33 47 Q 36 50 39 47"/>
+      <path d="M58 46 C 72 42, 78 30, 72 24" fill="none"/>
+    </g>
+    <circle cx="24" cy="47" r="3.4" fill="oklch(85% 0.08 10 / .7)"/>
+    <circle cx="48" cy="47" r="3.4" fill="oklch(85% 0.08 10 / .7)"/>
+  </svg>
+
+  <svg class="hero-doodle d-spark1" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <path d="M20 3 C 21.5 12, 24 16, 34 20 C 24 24, 21.5 28, 20 37 C 18.5 28, 16 24, 6 20 C 16 16, 18.5 12, 20 3 Z" fill="oklch(85% 0.10 92)"/>
+  </svg>
+  <svg class="hero-doodle d-spark2" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+    <path d="M20 3 C 21.5 12, 24 16, 34 20 C 24 24, 21.5 28, 20 37 C 18.5 28, 16 24, 6 20 C 16 16, 18.5 12, 20 3 Z" fill="oklch(80% 0.07 235)"/>
+  </svg>
+
+  <div class="wrap">
+    <h1 class="hero-title" id="hero-title" lang="en" translate="no">
+      <span class="l1">M</span><span class="l2">O</span><span class="l3">O</span><span class="l4">D</span>
+      <span class="l5">M</span><span class="l6">E</span>
+    </h1>
+    <p class="hero-sub">무드미 · 나를 무드로 표현하다</p>
+
+    <div class="hero-pills">
+      <span class="pill p-pink">3분 만에 추구생보드 완성</span>
+      <span class="pill p-blue">친구와 함께 만드는 보드</span>
+    </div>
+
+    <a class="hero-cta" href="#how">오늘의 무드는? ✿</a>
+  </div>
+</section>
+
+<svg class="ribbon" viewBox="0 0 420 40" fill="none" aria-hidden="true">
+  <path d="M8 24 C 60 4, 90 40, 140 20 S 240 4, 290 24 S 380 36, 412 16" stroke="oklch(80% 0.09 10)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M8 30 C 60 12, 92 46, 142 26 S 242 12, 292 30 S 382 42, 412 22" stroke="oklch(80% 0.07 235)" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>
+</svg>
+
+<!-- ═══════════ Why ═══════════ -->
+<section class="why" id="why" aria-labelledby="why-title">
+  <div class="blob" style="width:320px;height:280px;top:8%;right:-4%;background:oklch(90% 0.05 305 / .5);"></div>
+  <div class="wrap">
+    <div class="why-card reveal">
+      <h2 class="script" id="why-title" style="color: var(--butter-deep);">Why, Mood Me?</h2>
+      <p class="why-quote">
+        “추구생보드는 만들고 싶은데,<br />
+        <em>핀터레스트에서만 세 시간째…”</em>
+      </p>
+      <p>예쁜 이미지를 찾고 배치하는 데만 많은 시간이 듭니다.</p>
+      <p>
+        하지만 정작 중요한 것은 <strong>‘내가 어떤 사람인지’</strong>,
+        <strong>‘친구들은 나를 어떻게 바라보는지’</strong>를 표현하는 것입니다.
+      </p>
+      <p>무드미는 누구나 쉽고 재미있게 자신만의 분위기와 취향을 표현할 수 있도록 시작되었습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ How to Use ═══════════ -->
+<section class="how" id="how" aria-labelledby="how-title">
+  <div class="blob" style="width:360px;height:300px;top:24%;left:-10%;background:oklch(90% 0.06 10 / .5);"></div>
+  <div class="blob" style="width:300px;height:280px;bottom:0;right:-8%;background:oklch(91% 0.05 235 / .55);"></div>
+  <div class="wrap">
+    <div class="how-head reveal">
+      <h2 class="script" id="how-title" style="color: var(--mint-deep);">How to Use <span aria-hidden="true">☆</span></h2>
+    </div>
+
+    <div class="how-grid">
+      <article class="how-card me reveal">
+        <h3 class="how-num"><span aria-hidden="true">①</span> 내가 만드는 나</h3>
+        <p class="how-flow" aria-label="진행 순서">
+          <span class="step">질문</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">선택</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">분석</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">보드 완성</span>
+        </p>
+        <p>몇 가지 질문과 선택만으로 나의 취향과 분위기를 분석합니다.</p>
+        <p>AI가 키워드와 컬러, 이미지를 조합하여 나만의 추구생보드를 만들어줍니다.</p>
+        <div class="how-doodles" aria-hidden="true">
+          <span>📋</span><span>🎨</span><span>📊</span><span>🖼️</span>
+        </div>
+        <span class="how-tag">나를 발견하는 시간</span>
+      </article>
+
+      <article class="how-card friends reveal">
+        <h3 class="how-num"><span aria-hidden="true">②</span> 친구가 만들어주는 나</h3>
+        <p class="how-flow" aria-label="진행 순서">
+          <span class="step">친구 선택</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">생각 공유</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">의견 모으기</span><span class="arr" aria-hidden="true">→</span>
+          <span class="step">보드 완성</span>
+        </p>
+        <p>친구들이 “너를 떠올리면 생각나는 분위기”를 모아 하나의 추구생보드를 만들어줍니다.</p>
+        <p>내가 생각하는 나와 친구들이 바라보는 나를 비교하며 새로운 나를 발견할 수 있습니다.</p>
+        <div class="how-doodles" aria-hidden="true">
+          <span>👥</span><span>💬</span><span>🫧</span><span>🖼️</span>
+        </div>
+        <span class="how-tag">서로를 발견하는 시간</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ The Kick ═══════════ -->
+<section class="kick" id="kick" aria-labelledby="kick-title">
+  <div class="wrap">
+    <div class="kick-inner reveal">
+      <div class="kick-head">
+        <h2 class="script" id="kick-title">The Kick!</h2>
+        <p class="kick-lede">같은 나인데, 보는 건 두 개.</p>
+      </div>
+
+      <div class="kick-compare">
+        <div class="mood-card mine">
+          <h3>내가 생각하는 나</h3>
+          <div class="mood-chips">
+            <span class="chip">차분한</span>
+            <span class="chip">감성적인</span>
+            <span class="chip">나만의 시간</span>
+          </div>
+        </div>
+
+        <div class="kick-vs" aria-hidden="true">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <path d="M8 26 H 40 M 32 16 L 42 26 L 32 36" stroke="oklch(52% 0.09 305)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="mood-card theirs">
+          <h3>친구들이 생각하는 나</h3>
+          <div class="mood-chips">
+            <span class="chip">밝은</span>
+            <span class="chip">텐션 있는</span>
+            <span class="chip">사람 좋아하는</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="kick-note">
+        같은 사람이라도 내가 생각하는 모습과 타인이 바라보는 모습은 다를 수 있습니다.<br />
+        이 차이를 비교하는 과정 자체가 <strong>새로운 재미와 공감이 되는 콘텐츠</strong>입니다.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ For This Moment ═══════════ -->
+<section class="moment" id="moment" aria-labelledby="moment-title">
+  <div class="blob" style="width:300px;height:260px;top:20%;left:-6%;background:oklch(92% 0.05 160 / .6);"></div>
+  <div class="wrap">
+    <h2 class="script reveal" id="moment-title">For This Moment</h2>
+    <div class="moment-grid reveal">
+      <div class="moment-item"><span class="emo" aria-hidden="true">🎁</span>생일 선물</div>
+      <div class="moment-item"><span class="emo" aria-hidden="true">🧳</span>여행</div>
+      <div class="moment-item"><span class="emo" aria-hidden="true">⛺</span>MT · 워크숍</div>
+      <div class="moment-item"><span class="emo" aria-hidden="true">🥂</span>커플 · 우정 기념일</div>
+      <div class="moment-item"><span class="emo" aria-hidden="true">🕯️</span>연말 회고</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ Appeal Point ═══════════ -->
+<section class="appeal" aria-labelledby="appeal-title">
+  <div class="blob" style="width:340px;height:300px;bottom:0;right:-8%;background:oklch(91% 0.06 10 / .5);"></div>
+  <div class="wrap">
+    <h2 class="script reveal" id="appeal-title">Appeal Point</h2>
+    <ol class="appeal-list">
+      <li class="appeal-item reveal">
+        <span class="appeal-num" aria-hidden="true">01</span>
+        <p>유행하는 추구생보드를 누구나 질문 몇 개만으로 완성</p>
+      </li>
+      <li class="appeal-item reveal">
+        <span class="appeal-num" aria-hidden="true">02</span>
+        <p>혼자 해도 재미있고 함께하면 게임이 되는 경험</p>
+      </li>
+      <li class="appeal-item reveal">
+        <span class="appeal-num" aria-hidden="true">03</span>
+        <p>AI가 취향을 분석하고 이미지와 무드를 한 번에 제작</p>
+      </li>
+      <li class="appeal-item reveal">
+        <span class="appeal-num" aria-hidden="true">04</span>
+        <p>취향을 시작으로 관계를 이어주는 새로운 소셜 경험</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════ 푸터 ═══════════ -->
+<footer class="outro">
+  <div class="wrap">
+    <p class="outro-label">한 줄 소개</p>
+    <p class="outro-title" lang="en" translate="no">
+      <span style="color:var(--pink-deep); transform:rotate(-3deg);">M</span><span style="color:var(--butter-deep); transform:rotate(2deg);">O</span><span style="color:var(--mint-deep); transform:rotate(-2deg);">O</span><span style="color:var(--blue-deep); transform:rotate(3deg);">D</span>
+      <span style="color:var(--lilac-deep); transform:rotate(-2deg);">M</span><span style="color:var(--pink-deep); transform:rotate(2deg);">E</span>
+    </p>
+    <p class="outro-quote">“나를 무드로 표현하다.”</p>
+    <p class="outro-line">당신의 분위기가 <strong>하나의 보드</strong>가 됩니다.</p>
+    <p class="outro-foot">7조 무드미(Mood Me) · 서비스 소개 프로토타입</p>
+  </div>
+</footer>
+
+<script>
+  document.documentElement.classList.add('js');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      }
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'));
+  }
+</script>
+</body>
+</html>
